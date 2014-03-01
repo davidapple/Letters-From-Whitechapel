@@ -1,0 +1,504 @@
+<html>
+<head>
+</head>
+<body>
+
+<h1>Whitechapel</h1>
+
+<script type="text/javascript">
+
+var x = 0;
+
+var map = new Array();
+for (a = 0; a < 999; a++ ){
+	map[a] = new Array();
+}
+map[0].adjacent = [1, 124];
+map[1].adjacent = [2, 123, 0];
+map[2].adjacent = [3, 121, 1];
+map[3].adjacent = [4, 2];
+map[3].number = 1;
+map[4].adjacent = [5, 119, 3];
+map[5].adjacent = [6, 112, 4];
+map[6].adjacent = [7, 5];
+map[6].number = 2;
+map[7].adjacent = [8, 117, 6];
+map[8].adjacent = [9, 7];
+map[8].number = 3;
+map[9].adjacent = [10, 72, 8];
+map[10].adjacent = [11, 9];
+map[10].number = 5;
+map[11].adjacent = [12, 69, 10];
+map[12].adjacent = [13, 53, 11];
+map[13].adjacent = [14, 51, 12];
+map[14].adjacent = [15, 45, 13];
+map[14].number = 17;
+map[15].adjacent = [16, 45, 14];
+map[16].adjacent = [17, 41, 15];
+map[16].number = 18;
+map[17].adjacent = [18, 16];
+map[18].adjacent = [19, 42, 17];
+map[19].adjacent = [35, 18];
+map[19].number = 20;
+map[35].adjacent = [20, 34, 19];
+map[20].adjacent = [21, 32, 35];
+map[21].adjacent = [22, 30, 20];
+map[22].adjacent = [23, 21];
+map[22].number = 21;
+map[23].adjacent = [24, 22];
+map[24].adjacent = [25, 23];
+map[25].adjacent = [26, 24];
+map[25].number = 23;
+map[26].adjacent = [25, 157, 27];
+map[27].adjacent = [26, 28];
+map[27].number = 22;
+map[28].adjacent = [27, 29];
+map[29].adjacent = [28, 31, 30];
+map[29].number = 42;
+map[30].adjacent = [29, 21];
+map[31].adjacent = [29, 163, 33, 32];
+map[32].adjacent = [31, 20];
+map[32].number = 41;
+map[33].adjacent = [31, 164, 36, 34];
+map[34].adjacent = [33, 35];
+map[34].number = 40;
+map[35].adjacent = [20, 34, 19];
+map[36].adjacent = [33, 37];
+map[36].number = 57;
+map[37].adjacent = [36, 38];
+map[38].adjacent = [37, 59, 39];
+map[38].number = 56;
+map[39].adjacent = [38, 40];
+map[40].adjacent = [41, 39, 43];
+map[40].number = 39;
+map[41].adjacent = [42, 40, 16];
+map[42].adjacent = [18, 41];
+map[42].number = 19;
+map[43].adjacent = [40, 47, 44];
+map[44].adjacent = [43, 45];
+map[44].number = 38;
+map[45].adjacent = [44, 46, 14, 15];
+map[46].adjacent = [45, 50];
+map[46].number = 36;
+map[47].adjacent = [43, 48];
+map[47].number = 37;
+map[48].adjacent = [47, 56, 49];
+map[49].adjacent = [48, 50];
+map[49].number = 35;
+map[50].adjacent = [46, 49, 52, 51];
+map[51].adjacent = [50, 13];
+map[51].number = 16;
+map[52].adjacent = [50, 54, 55, 53];
+map[53].adjacent = [52, 12];
+map[53].number = 15;
+map[54].adjacent = [56, 52];
+map[54].number = 34;
+map[55].adjacent = [52, 65];
+map[55].number = 33;
+map[56].adjacent = [48, 57, 63, 54];
+map[57].adjacent = [58, 56];
+map[57].number = 55;
+map[58].adjacent = [59, 60, 57];
+map[59].adjacent = [38, 58];
+map[60].adjacent = [58, 175, 176, 61];
+map[61].adjacent = [60, 62];
+map[61].number = 68;
+map[62].adjacent = [61, 156, 63];
+map[63].adjacent = [56, 62, 156, 64];
+map[64].adjacent = [63, 85, 65];
+map[64].number = 54;
+map[65].adjacent = [55, 64, 84, 66];
+map[66].adjacent = [65, 67];
+map[66].number = 14;
+map[67].adjacent = [66, 83, 75, 68];
+map[68].adjacent = [67, 69];
+map[68].number = 13;
+map[69].adjacent = [11, 68, 70];
+map[70].adjacent = [69, 71];
+map[70].number = 12;
+map[71].adjacent = [70, 73, 118, 72];
+map[72].adjacent = [9, 71];
+map[72].number = 4;
+map[73].adjacent = [74, 115, 71];
+map[74].adjacent = [75, 76, 73];
+map[74].number = 30;
+map[75].adjacent = [67, 74];
+map[76].adjacent = [80, 77, 108, 74];
+map[77].adjacent = [80, 78, 100, 76];
+map[78].adjacent = [79, 98, 77];
+map[79].adjacent = [93, 78];
+map[79].number = 66;
+map[80].adjacent = [81, 77, 76];
+map[80].number = 50;
+map[81].adjacent = [82, 88, 80];
+map[82].adjacent = [84, 87, 81];
+map[82].number = 31;
+map[83].adjacent = [84, 67];
+map[83].number = 32;
+map[84].adjacent = [65, 85, 82, 83];
+map[85].adjacent = [64, 86, 84];
+map[86].adjacent = [85, 89, 88, 87];
+map[86].number = 52;
+map[87].adjacent = [86, 82];
+map[88].adjacent = [86, 92, 81];
+map[89].adjacent = [156, 90, 86];
+map[90].adjacent = [89, 91];
+map[90].number = 67;
+map[91].adjacent = [90, 93, 92];
+map[92].adjacent = [88, 91];
+map[92].number = 51;
+map[93].adjacent = [91, 183, 94, 79];
+map[94].adjacent = [93, 188, 95];
+map[94].number = 65;
+map[95].adjacent = [94, 188, 101, 96];
+map[96].adjacent = [95, 97];
+map[96].number = 63;
+map[97].adjacent = [98, 96, 104, 99];
+map[98].adjacent = [78, 97];
+map[98].number = 64;
+map[99].adjacent = [100, 97, 105];
+map[100].adjacent = [77, 99];
+map[100].number = 49;
+map[101].adjacent = [95, 102];
+map[101].number = 82;
+map[102].adjacent = [101, 193, 142, 103];
+map[103].adjacent = [102, 104];
+map[103].number = 62;
+map[104].adjacent = [97, 103, 105];
+map[105].adjacent = [99, 104, 106];
+map[105].number = 48;
+map[106].adjacent = [107, 105, 153, 149, 109];
+map[107].adjacent = [108, 106];
+map[108].adjacent = [76, 107];
+map[108].number = 29;
+map[109].adjacent = [106, 148, 110];
+map[110].adjacent = [111, 109, 119];
+map[110].number = 28;
+map[111].adjacent = [112, 113, 110, 119];
+map[112].adjacent = [5, 116, 111];
+map[113].adjacent = [114, 111];
+map[113].numbers = 8;
+map[114].adjacent = [116, 115, 113];
+map[115].adjacent = [73, 114];
+map[115].number = 10;
+map[116].adjacent = [117, 114, 112];
+map[116].number = 9;
+map[117].adjacent = [7, 118, 116];
+map[118].adjacent = [71, 117];
+map[119].adjacent = [4, 111, 110, 147, 120];
+map[119].number = 26;
+map[120].adjacent = [121, 119, 127, 122];
+map[121].adjacent = [2, 120];
+map[121].number = 7;
+map[122].adjacent = [123, 120, 125, 124];
+map[123].adjacent = [1, 122];
+map[123].number = 6;
+map[124].adjacent = [0, 122, 126];
+map[124].number = 24;
+map[125].adjacent = [122, 127, 126];
+map[125].number = 25;
+map[126].adjacent = [124, 125, 128];
+map[127].adjacent = [120, 146, 125];
+map[128].adjacent = [146, 132, 129, 126];
+map[129].adjacent = [128, 130];
+map[130].adjacent = [129, 131];
+map[130].number = 43;
+map[131].adjacent = [132, 130];
+map[132].adjacent = [133, 131, 128]; // 146?
+map[133].adjacent = [134, 132];
+map[133].number = 59;
+map[134].adjacent = [137, 135, 133];
+map[135].adjacent = [136, 220, 134];
+map[136].adjacent = [140, 204, 135];
+map[137].adjacent = [138, 134];
+map[137].number = 60;
+map[138].adjacent = [139, 137];
+map[139].adjacent = [143, 140, 138];
+map[140].adjacent = [141, 136, 139];
+map[140].number = 78;
+map[141].adjacent = [142, 202, 140, 143];
+map[142].adjacent = [102, 197, 141];
+map[142].number = 80;
+map[143].adjacent = [141,139, 144];
+map[143].number = 79;
+map[144].adjacent = [143, 145];
+map[145].adjacent = [149, 144, 146, 147];
+map[146].adjacent = [147, 145, 128, 127]; //132?
+map[146].number = 44;
+map[147].adjacent = [119, 148, 145, 146];
+map[148].adjacent = [109, 147];
+map[148].number = 27;
+map[149].adjacent = [106, 153, 145];
+map[149].number = 46;
+map[150].adjacent = [155, 154, 151, 153];
+map[150].number = 47;
+map[151].adjacent = [153, 150, 154];
+map[151].number = 45;
+map[152].adjacent = [155, 154];
+map[152].number = 61;
+map[153].adjacent = [106, 150, 151, 149];
+map[154].adjacent = [150, 155, 152, 151];
+map[155].adjacent = [152, 154, 150];
+map[156].adjacent = [63, 62, 89]; // Missed this one
+map[156].number = 53;
+map[157].adjacent = [158, 26];
+map[158].adjacent = [159, 157];
+map[158].numbers = 77;
+map[159].adjacent = [158, x, 160];
+map[160].adjacent = [159, 161];
+map[160].number = 76;
+map[161].adjacent = [160, x, 167, 162];
+map[162].adjacent = [161, 165, 163];
+map[163].adjacent = [162, 164, 31];
+map[163].number = 58;
+map[164].adjacent = [163, 165, 33];
+map[165].adjacent = [162, 166, 164];
+map[165].number = 73;
+map[166].adjacent = [167, x, 168, 165];
+map[167].adjacent = [161, 166];
+map[167].number = 74;
+map[168].adjacent = [166, 169];
+map[168].number = 72;
+map[169].adjacent = [168, x, 170];
+map[170].adjacent = [169, x, 171];
+map[170].number = 71;
+map[171].adjacent = [170, x, 172];
+map[172].adjacent = [171, 173];
+map[172].number = 70;
+map[173].adjacent = [172, x, 174];
+map[174].adjacent = [173, x, 175];
+map[174].number = 69;
+map[175].adjacent = [174, x, 60];
+map[176].adjacent = [60, 177];
+map[176].number = 86;
+map[177].adjacent = [176, x, 178];
+map[178].adjacent = [177, 179, 180];
+map[179].adjacent = [x, 185, 178];
+map[179].number = 100;
+map[180].adjacent = [178, 184, 181];
+map[181].adjacent = [180, 182];
+map[182].adjacent = [181, 183];
+map[182].number = 84;
+map[183].adjacent = [182, 93];
+map[184].adjacent = [180, 185];
+map[184].number = 99;
+map[185].adjacent = [184, 179, 189, 186];
+map[186].adjacent = [185, 187];
+map[187].adjacent = [186, 188];
+map[187].number = 83;
+map[188].adjacent = [94, 187, 95];
+map[189].adjacent = [185, 190];
+map[190].adjacent = [189, x, x, 194, 191];
+map[191].adjacent = [190, 192];
+map[192].adjacent = [191, 193];
+map[192].number = 98;
+map[193].adjacent = [192, 102];
+map[194].adjacent = [190, 195, 198];
+map[194].number = 118;
+map[195].adjacent = [194, 196];
+map[196].adjacent = [195, 197];
+map[196].number = 81;
+map[197].adjacent = [196, 142];
+map[198].adjacent = [194, x, 208, 199];
+map[199].adjacent = [198, 200];
+map[200].adjacent = [199, 201];
+map[200].number = 117;
+map[201].adjacent = [200, 202];
+map[202].adjacent = [201, 203, 141];
+map[202].number = 97;
+map[203].adjacent = [202, 205, 204];
+map[204].adjacent = [203, 218, 136];
+map[204].number = 96;
+map[205].adjacent = [206, 216, 203];
+map[206].adjacent = [207, 205];
+map[206].number = 116;
+map[207].adjacent = [208, 206];
+map[208].adjacent = [198, x, x, 209, 207];
+map[209].adjacent = [208, 210];
+map[209].number = 139;
+map[210].adjacent = [209, 239, 211];
+map[211].adjacent = [210, 239, 235, 212];
+map[212].adjacent = [211, 213];
+map[212].number = 138;
+map[213].adjacent = [214, 212, 223];
+map[214].adjacent = [215, 213];
+map[214].number = 137;
+map[215].adjacent = [216, 214, 217];
+map[216].adjacent = [205, 215];
+map[216].number = 115;
+map[217].adjacent = [218, 215, 223];
+map[217].number = 114;
+map[218].adjacent = [204, 217, 219];
+map[219].adjacent = [220, 218, 221];
+map[220].adjacent = [135, 219];
+map[220].number = 95;
+map[221].adjacent = [219, 222, 227];
+map[222].adjacent = [223, 221];
+map[222].number = 113;
+map[223].adjacent = [217, 213, 224, 222];
+map[224].adjacent = [223, 233, 230, 225];
+map[225].adjacent = [224, 226];
+map[225].number = 135;
+map[226].adjacent = [225, 228, 227];
+map[227].adjacent = [221, 226];
+map[227].number = 112;
+map[228].adjacent = [230, 229, 226];
+map[229].adjacent = [228, 237];
+map[229].number = 162;
+map[230].adjacent = [224, 231, 228];
+map[230].number = 148;
+map[231].adjacent = [232, 237, 230];
+map[232].adjacent = [234, 231];
+map[232].number = 149;
+map[233].adjacent = [234, 224];
+map[233].number = 136;
+map[234].adjacent = [235, 232, 233];
+map[235].adjacent = [211, 238, 236, 234];
+map[236].adjacent = [235, 237];
+map[236].number = 163;
+map[237].adjacent = [236, 229, 231];
+map[238].adjacent = [240, 235];
+map[238].number = 174;
+map[239].adjacent = [210, 240, 211];
+map[239].number = 164;
+map[240].adjacent = [239, x, x, 238];
+
+console.log('Choose a start map ID for Jack. start(character[0], 3) for example.');
+
+var character = new Array();
+character[0] = new Array();
+character[0].routes = new Array();
+
+function start(character, mapID) {
+	character.routes.push([mapID]);
+	console.log('Start position chosen. Create list of possible move IDs, type possibleMovesByID(true)');
+}
+
+function adjacentIDs(explore) { // Explore is true or false, if true, only unique places will be visited enroute
+	var counter = 0; // Start counting from zero
+	var newRoutes = new Array(); // Create a new route array
+	for (a = 0; a < character[0].routes.length; a++) { // For every route
+		var lastOne = character[0].routes[a][character[0].routes[a].length - 1] // Find the last position
+		for (b = 0; b < map[lastOne].adjacent.length; b++) { // For every place adjacent to the last one
+			if (explore) { // If explore mode is true
+				if (isNewID(a, b, lastOne)) { // If the adjacent place is brand new
+					createNewRoute(newRoutes, counter, lastOne);
+					counter++;
+				}
+			} else {
+				createNewRoute(newRoutes, counter, lastOne)
+				counter++;
+			}
+		}
+	}
+	return newRoutes;
+};
+
+function createNewRoute(newRoutes, counter, lastOne) {
+	newRoutes[counter] = new Array(); // Create a new route starting from zero
+	for (c = 0; c < character[0].routes[a].length; c++) { // For every place travelled so far
+		newRoutes[counter].push(character[0].routes[a][c]); // Add that to the new route sequentially
+	}
+	newRoutes[counter].push(map[lastOne].adjacent[b]); // Append the adjacent places to the end
+}
+
+function isNewID(a, b, lastOne) { // Test if the next place has been visited already, return true or false
+	var p = true; // Assume it's a new place until you check
+	for (c = 0; c < character[0].routes[a].length; c++) { // For every place traveled so far
+		if (map[lastOne].adjacent[b] == character[0].routes[a][c]) { // If the next move is the same as a previous one
+			p = false; // Remember that it's not a new place
+		}
+	}
+	return p;
+}
+
+function destroyShortRoutes(r) {
+	var counter = 0; // Start counting from zero (how many routes are too short)
+	var longestRoute = r[r.length - 1].length; // Find the length of the last (and therefore longest) route
+	for (a = 0; a < r.length; a++) { // For each route
+		if (r[a].length < longestRoute) { // If it's shorter than the longest
+			counter++; // Add one to the counter
+			// r = r.shift() // Annoyingly, this doesn't work
+		}
+	}
+	var desiredRoutes = r.length - counter; // Total routes minus routes that are too short equals number of desired routes
+	var recompileRoutes = new Array(); // Annoyingly, the desired routes need to me recompiled into a new array, shift() doesn't work
+	for (b = 0; b < desiredRoutes; b++) { // For all desired routes
+		recompileRoutes[b] = r.pop(); // Get the last route of the routes array and save it to the start of the recompiled routes array
+	}
+	recompileRoutes.reverse(); // Reverse the routes back into the correct order
+	return recompileRoutes;
+}
+
+function possibleMovesByID(explore) { // Explore is true or false, if true, only unique places will be visited enroute
+	var tempRoutes = new Array(); // Create a temporary array
+	tempRoutes = adjacentIDs(explore); // Save new routes to temporary array
+	for (a = 0; a < tempRoutes.length; a++) { // For every new route
+		character[0].routes.push(tempRoutes[a]); // Append it to the master routes list
+	}
+	character[0].routes = destroyShortRoutes(character[0].routes);
+	console.log('List of possible routes updated: character[0].routes');
+}
+
+function debugMap() {
+	var errorCount = 0;
+	for (a = 0; a < map.length; a++) { // For every place
+		for (b = 0; b < map[a].adjacent.length; b++) { // For every adjacent place
+			if (a != map[a].adjacent[b]) { // If the adjacent place is not same as the place
+				if (map[map[a].adjacent[b]].adjacent.indexOf(a) == -1) { // If the adjacent place has a connection back
+					errorCount++;
+					console.log(errorCount + ': Point ' + map[a].adjacent[b] + ' does not connect to point ' + a);
+				}
+			} else { // If the adjacent place is the same as the place
+				errorCount++;
+				console.log(errorCount + ': Point ' + a + ' connects to itself');
+			}
+		}
+	}
+	return errorCount++ + ' errors';
+}
+
+/* ----- JACKS MOVES -----
+
+Start at a numbered map[ID]
+Perform a special takeadjacentIDs() type function that never doubles back on itself
+If one of the recorded routes ends on a numbered map[ID] {
+	and if the numbered map[ID] has not already been recorded {
+		record numbered map[ID]
+	}
+	destroy that route
+}
+Output the recorded routes that end in numbered map[ID]s (The interim map[ID]s might be a little fucked but it doesn't matter).
+
+*/
+
+/* ----- POLICE MOVES -----
+
+Start at a non numbered map[ID]
+Record this position as an option if the police person wants not to move this turn
+Perform a special takeadjacentIDs() type function that never doubles back on itself
+(Note not to destroy short routes)
+If one of the recorded routes ends on a numbered map[ID] {
+	Perform a special takeadjacentIDs() type function that never doubles back on itself, on that particular route
+	(Note not to destroy short routes)
+	Cut out the numbered map[ID] from the routes as if they never existed.
+	Record these routes as single move options
+}
+Perform a special takeadjacentIDs() type function that never doubles back on itself
+(Note not to destroy short routes)
+If one of the recorded routes ends on a numbered map[ID] {
+	Perform a special takeadjacentIDs() type function that never doubles back on itself, on that particular route
+	(Note not to destroy short routes)
+	Cut out the numbered map[ID] from the routes as if they never existed.
+	Record these routes as double move options
+}
+Output all possible police routes
+
+
+
+*/
+
+</script>
+
+</body>
+</html>
