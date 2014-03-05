@@ -624,3 +624,21 @@ map[426].number = 131;
 map[427].adjacent = [425, 383, 385];
 map[428].adjacent = [245, 241];
 map[428].number = 188;
+
+function debugMap() {
+	var errorCount = 0;
+	for (a = 0; a < map.length; a++) { // For every place
+		for (b = 0; b < map[a].adjacent.length; b++) { // For every adjacent place
+			if (a != map[a].adjacent[b]) { // If the adjacent place is not same as the place
+				if (map[map[a].adjacent[b]].adjacent.indexOf(a) == -1) { // If the adjacent place has a connection back
+					errorCount++;
+					console.log(errorCount + ': Point ' + map[a].adjacent[b] + ' does not connect to point ' + a);
+				}
+			} else { // If the adjacent place is the same as the place
+				errorCount++;
+				console.log(errorCount + ': Point ' + a + ' connects to itself');
+			}
+		}
+	}
+	return errorCount++ + ' errors';
+}

@@ -88,39 +88,6 @@ function possibleMovesByID(explore) { // Explore is true or false, if true, only
 	console.log('List of possible routes updated: character[0].routes');
 }
 
-function debugMap() {
-	var errorCount = 0;
-	for (a = 0; a < map.length; a++) { // For every place
-		for (b = 0; b < map[a].adjacent.length; b++) { // For every adjacent place
-			if (a != map[a].adjacent[b]) { // If the adjacent place is not same as the place
-				if (map[map[a].adjacent[b]].adjacent.indexOf(a) == -1) { // If the adjacent place has a connection back
-					errorCount++;
-					console.log(errorCount + ': Point ' + map[a].adjacent[b] + ' does not connect to point ' + a);
-				}
-			} else { // If the adjacent place is the same as the place
-				errorCount++;
-				console.log(errorCount + ': Point ' + a + ' connects to itself');
-			}
-		}
-	}
-	return errorCount++ + ' errors';
-}
-
-/* 
-
-Basically, this function should work by triggering
-possibleMovesByID(true);
-Then asking, are there any routes that haven't passed though numbers?.. yes
-possibleMovesByID(true);
-Then asking, are there any routes that haven't passed though numbers?.. yes
-possibleMovesByID(true);
-Then asking, are there any routes that haven't passed though numbers?.. yes
-possibleMovesByID(true);
-Then asking, are there any routes that haven't passed though numbers?.. no, that's all of them
-Ok, stop then
-
-*/
-
 function possibleMovesByNumber(explore) {
 	possibleMovesByID(true);
 	for (a = 0; a < character[0].routes.length; a++) { // For every route
@@ -135,46 +102,6 @@ function possibleMovesByNumber(explore) {
 		}
 	}
 }
-
-/* ----- JACKS MOVES -----
-
-Start at a numbered map[ID]
-Perform a special takeadjacentIDs() type function that never doubles back on itself
-If one of the recorded routes ends on a numbered map[ID] {
-	and if the numbered map[ID] has not already been recorded {
-		record numbered map[ID]
-	}
-	destroy that route
-}
-Output the recorded routes that end in numbered map[ID]s (The interim map[ID]s might be a little fucked but it doesn't matter).
-
-*/
-
-/* ----- POLICE MOVES -----
-
-Start at a non numbered map[ID]
-Record this position as an option if the police person wants not to move this turn
-Perform a special takeadjacentIDs() type function that never doubles back on itself
-(Note not to destroy short routes)
-If one of the recorded routes ends on a numbered map[ID] {
-	Perform a special takeadjacentIDs() type function that never doubles back on itself, on that particular route
-	(Note not to destroy short routes)
-	Cut out the numbered map[ID] from the routes as if they never existed.
-	Record these routes as single move options
-}
-Perform a special takeadjacentIDs() type function that never doubles back on itself
-(Note not to destroy short routes)
-If one of the recorded routes ends on a numbered map[ID] {
-	Perform a special takeadjacentIDs() type function that never doubles back on itself, on that particular route
-	(Note not to destroy short routes)
-	Cut out the numbered map[ID] from the routes as if they never existed.
-	Record these routes as double move options
-}
-Output all possible police routes
-
-
-
-*/
 
 </script>
 
