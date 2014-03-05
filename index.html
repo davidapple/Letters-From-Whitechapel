@@ -125,15 +125,13 @@ function possibleMovesByNumber(explore) {
 	possibleMovesByID(true);
 	for (a = 0; a < character[0].routes.length; a++) { // For every route
 		for (b = 1; b < character[0].routes[a].length; b++) { // For every position (ignoring the first one)
-			if (map[character[0].routes[a][b]].number != undefined) {
-				console.log(map[character[0].routes[a][b]].number); // Log map numbers
-				// If no map numbers are found on this route
+			if (map[character[0].routes[a][b]].number != undefined) { // If it contains a number
+				console.log(map[character[0].routes[a][b]].number);
+				// If the number has not been recorded already
+				character[0].adjacentNumbers.push(character[0].routes[a]); // Add the route to a list of possible next moves
+				character[0].routes.splice(a, (a + 1)); // Destroy this route
+				break;
 			}
-		}
-		var lastOnesNumber = map[character[0].routes[a][character[0].routes[a].length - 1]].number; // Find the last position's number
-		if (lastOnesNumber != undefined) { // If it ends in a numbered ID
-			// If the number has not been recorded already
-			character[0].adjacentNumbers.push(character[0].routes[a]); // Add the route to a list of possible next moves
 		}
 	}
 }
