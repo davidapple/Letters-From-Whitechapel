@@ -53,6 +53,7 @@ function isNewID(a, b, lastOne) { // Test if the next place has been visited alr
 function destroyShortRoutes(r) {
 	var counter = 0; // Start counting from zero (how many routes are too short)
 	var longestRoute = r[r.length - 1].length; // Find the length of the last (and therefore longest) route
+
 	for (a = 0; a < r.length; a++) { // For each route
 		if (r[a].length < longestRoute) { // If it's shorter than the longest
 			counter++; // Add one to the counter
@@ -74,21 +75,33 @@ function possibleMovesByID(explore) { // Explore is true or false, if true, only
 	for (a = 0; a < tempRoutes.length; a++) { // For every new route
 		character[0].routes.push(tempRoutes[a]); // Append it to the master routes list
 	}
-	character[0].routes = destroyShortRoutes(character[0].routes);
-	console.log('List of possible routes updated: character[0].routes');
+	if (character[0].routes[0] != undefined) { // If routes still exist (added because of error caused by possibleMovesByNumber)
+		character[0].routes = destroyShortRoutes(character[0].routes);
+		console.log('List of possible routes updated: character[0].routes');
+	}
 }
 
 function possibleMovesByNumber(explore) {
-	possibleMovesByID(true);
-	for (a = 0; a < character[0].routes.length; a++) { // For every route
-		for (b = 1; b < character[0].routes[a].length; b++) { // For every position (ignoring the first one)
-			if (map[character[0].routes[a][b]].number != undefined) { // If it contains a number
-				console.log(map[character[0].routes[a][b]].number);
-				// If the number has not been recorded already
-				character[0].adjacentNumbers.push(character[0].routes[a]); // Add the route to a list of possible next moves
-				character[0].routes.splice(a, (a + 1)); // Destroy this route
-				break;
+	while (typeof character[0].routes[0] != undefined) {
+		possibleMovesByID(true);
+		var totalRoutes = character[0].routes.length;
+		var spliceList = new Array;
+		for (a = 0; a < totalRoutes; a++) { // For every route
+			if (character[0].routes[a] != undefined) { // If it exists
+				for (b = 1; b < character[0].routes[a].length; b++) { // For every position (ignoring the first one)
+					if (map[character[0].routes[a][b]].number != undefined) { // If it contains a number
+						console.log(map[character[0].routes[a][b]].number);
+						// If the number has not been recorded already
+						character[0].adjacentNumbers.push(character[0].routes[a]); // Add the route to a list of possible next moves
+						spliceList.push(a);
+					}
+				}
 			}
+		}
+		var spliceCounter = 0;
+		for (a = 0; a < spliceList.length; a++) { // For every route to splice
+			character[0].routes.splice(spliceList[a - spliceCounter], 1); // Destroy this route
+			spliceCounter++;
 		}
 	}
 }
