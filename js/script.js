@@ -18,21 +18,17 @@ function adjacentIDs() {
 		var lastOne = character[0].routes[a][character[0].routes[a].length - 1] // Find the last position
 		for (b = 0; b < map[lastOne].adjacent.length; b++) { // For every place adjacent to the last one
 			if (isNewID(a, b, lastOne)) { // If the adjacent place is brand new
-				createNewRoute(newRoutes, counter, lastOne);
+				newRoutes[counter] = new Array(); // Create a new route starting from zero
+				for (c = 0; c < character[0].routes[a].length; c++) { // For every place travelled so far
+					newRoutes[counter].push(character[0].routes[a][c]); // Add that to the new route sequentially
+				}
+				newRoutes[counter].push(map[lastOne].adjacent[b]); // Append the adjacent places to the end
 				counter++;
 			}
 		}
 	}
 	return newRoutes;
 };
-
-function createNewRoute(newRoutes, counter, lastOne) {
-	newRoutes[counter] = new Array(); // Create a new route starting from zero
-	for (c = 0; c < character[0].routes[a].length; c++) { // For every place travelled so far
-		newRoutes[counter].push(character[0].routes[a][c]); // Add that to the new route sequentially
-	}
-	newRoutes[counter].push(map[lastOne].adjacent[b]); // Append the adjacent places to the end
-}
 
 function isNewID(a, b, lastOne) { // Test if the next place has been visited already, return true or false
 	var p = true; // Assume it's a new place until you check
