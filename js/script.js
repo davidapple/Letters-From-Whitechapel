@@ -82,7 +82,8 @@ function possibleMovesByID(explore) { // Explore is true or false, if true, only
 }
 
 function possibleMovesByNumber(explore) {
-	while (typeof character[0].routes[0] != undefined) {
+	var numberList = new Array;
+	while (character[0].routes[0] != undefined) {
 		possibleMovesByID(true);
 		var totalRoutes = character[0].routes.length;
 		var spliceList = new Array;
@@ -90,9 +91,17 @@ function possibleMovesByNumber(explore) {
 			if (character[0].routes[a] != undefined) { // If it exists
 				for (b = 1; b < character[0].routes[a].length; b++) { // For every position (ignoring the first one)
 					if (map[character[0].routes[a][b]].number != undefined) { // If it contains a number
-						console.log(map[character[0].routes[a][b]].number);
-						// If the number has not been recorded already
-						character[0].adjacentNumbers.push(character[0].routes[a]); // Add the route to a list of possible next moves
+						var newNumber = true;
+						for (c = 0; c < numberList.length; c++) { // For every number recorded
+							if (numberList[c] == map[character[0].routes[a][b]].number) { // If the number has been recorded already
+								newNumber = false;
+							}
+						}
+						if (newNumber) {
+							numberList.push(map[character[0].routes[a][b]].number);
+							console.log(map[character[0].routes[a][b]].number);
+							character[0].adjacentNumbers.push(character[0].routes[a]); // Add the route to a list of possible next moves
+						}
 						spliceList.push(a);
 					}
 				}
@@ -100,7 +109,7 @@ function possibleMovesByNumber(explore) {
 		}
 		var spliceCounter = 0;
 		for (a = 0; a < spliceList.length; a++) { // For every route to splice
-			character[0].routes.splice(spliceList[a - spliceCounter], 1); // Destroy this route
+			character[0].routes.splice(spliceList[a] - spliceCounter, 1); // Destroy this route
 			spliceCounter++;
 		}
 	}
