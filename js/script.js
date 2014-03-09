@@ -12,6 +12,10 @@ function start(character, mapID) {
 }
 
 var move = {
+	config: {
+		amnesia: true, // Can Jack double back on himself, visit the same space multiple times?
+		canPassBase: true, // Can Jack travel past his base?
+	},
 	id: function(r) {
 		var newRoutes = new Array(); // Create a new route array
 		var counter = 0; // Start counting from zero
@@ -69,6 +73,45 @@ var move = {
 		return newRoutes;
 	},
 	base: function(r, base) {
+		if (move.config.amnesia) {
+			move.baseExhaust(r, base);
+		} else {
+			move.baseExplore(r, base);
+		}
+	},
+	baseExhaust: function(r, base) {
+		var newRoutes = new Array(); // Create a new route array
+		var counter = 0; // Start counting from zero
+		var spliceList = new Array();
+		var totalDesiredRoutes = 20;
+		var routesCounter = 0; // Start counting from zero
+		var isComplete = false;
+		while (!isComplete) {
+			counter++;
+			var forgottenRoutes = r;
+			var amnesiaRoutes = new Array();
+			for (a = 0; a < r.length; a++) {
+				amnesiaRoutes.push(r[a][r[a].length - 1]);
+			}
+			amnesiaRoutes = move.number(amnesiaRoutes);
+			console.log(amnesiaRoutes);
+			for (a = 0; a < amnesiaRoutes.length; a++) { // For every route
+				if (amnesiaRoutes[a] != undefined) { // If it exists
+					if (amnesiaRoutes[a][amnesiaRoutes[a].length - 1] == base) { // If the last position is the base
+						console.log('Number of numbers passed = ' + counter);
+						console.log('Have to somehow join ' + r[a] + ' with ' + amnesiaRoutes);
+						newRoutes.push(r[a]);
+						routesCounter++;
+						if (routesCounter > totalDesiredRoutes) {
+							isComplete = true;
+						}
+					}
+				}
+			}
+		}
+		return newRoutes;
+	},
+	baseExplore: function(r, base) {
 		var newRoutes = new Array(); // Create a new route array
 		var counter = 0; // Start counting from zero
 		var spliceList = new Array();
@@ -83,6 +126,7 @@ var move = {
 					if (r[a][r[a].length - 1] == base) { // If the last position is the base
 						console.log('Number of numbers passed = ' + counter);
 						console.log(r[a]);
+						newRoutes.push(r[a]);
 						routesCounter++;
 						if (routesCounter > totalDesiredRoutes) {
 							isComplete = true;
@@ -97,5 +141,6 @@ var move = {
 				spliceCounter++;
 			}
 		}
+		return newRoutes;
 	},
 }
