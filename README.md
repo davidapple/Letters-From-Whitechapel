@@ -13,17 +13,17 @@ Momement function
 
 The current code is polluting the global namespace and must be transformed into a series of object literals, the most important controling movement accross the map. The movement object literal will operate as follows.
 
-Return an array of all routes from ID 76 to adjacent IDs
+Advance array of routes r by one ID
 ```javascript
-movement.id(76)
+r = move.id(r)
 ```
 
-Return an array of all shortest routes from ID 121 to adjacent IDs with numbers
+Advance array of routes r to the next adjacent number
 ```javascript
-movement.number(121)
+r = move.number(r)
 ```
 
-Return an array of all routes from ID 121 to ID 407 via 15 or less numbered IDs
+Advance array of routes r until the base (at ID 300) is reached, within the remaining number of moves possible
 ```javascript
-movement.route(121, 407, 15)
+r = move.base.routes(r, 300)
 ```

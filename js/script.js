@@ -13,8 +13,9 @@ function start(character, mapID) {
 
 var move = {
 	config: {
-		amnesia: true, // Can Jack double back on himself, visit the same space multiple times?
+		amnesia: false, // Can Jack double back on himself, visit the same space multiple times?
 		canPassBase: true, // Can Jack travel past his base?
+		remainingMoves: 19,
 	},
 	id: function(r) {
 		var newRoutes = new Array(); // Create a new route array
@@ -72,75 +73,75 @@ var move = {
 		}
 		return newRoutes;
 	},
-	base: function(r, base) {
-		if (move.config.amnesia) {
-			move.baseExhaust(r, base);
-		} else {
-			move.baseExplore(r, base);
-		}
-	},
-	baseExhaust: function(r, base) {
+	lantern: function(r) {
 		var newRoutes = new Array(); // Create a new route array
-		var counter = 0; // Start counting from zero
-		var spliceList = new Array();
-		var totalDesiredRoutes = 20;
-		var routesCounter = 0; // Start counting from zero
-		var isComplete = false;
-		while (!isComplete) {
-			counter++;
-			var forgottenRoutes = r;
-			var amnesiaRoutes = new Array();
-			for (a = 0; a < r.length; a++) {
-				amnesiaRoutes.push(r[a][r[a].length - 1]);
+		// Return all possible routes via lanterns
+	},
+	base: {
+		routes: function(r, base) {
+			var routesToBase = new Array();
+			if (move.config.amnesia) {
+				routesToBase = move.base.exhaust(r, base);
+			} else {
+				routesToBase = move.base.explore(r, base);
 			}
-			amnesiaRoutes = move.number(amnesiaRoutes);
-			console.log(amnesiaRoutes);
-			for (a = 0; a < amnesiaRoutes.length; a++) { // For every route
-				if (amnesiaRoutes[a] != undefined) { // If it exists
-					if (amnesiaRoutes[a][amnesiaRoutes[a].length - 1] == base) { // If the last position is the base
-						console.log('Number of numbers passed = ' + counter);
-						console.log('Have to somehow join ' + r[a] + ' with ' + amnesiaRoutes);
-						newRoutes.push(r[a]);
-						routesCounter++;
-						if (routesCounter > totalDesiredRoutes) {
-							isComplete = true;
+			return routesToBase;
+		},
+		explore: function(r, base) {
+			var newRoutes = new Array(); // Create a new route array
+			var counter = 0; // Start counting from zero
+			var spliceList = new Array();
+			var isComplete = false;
+			while (!isComplete) {
+				counter++;
+				r = move.number(r);
+				for (a = 0; a < r.length; a++) { // For every route
+					if (r[a] != undefined) { // If it exists
+						if (r[a][r[a].length - 1] == base) { // If the last position is the base
+							console.log('Number of numbers passed = ' + counter); console.log(r[a]);
+							newRoutes.push(r[a]);
+							if (counter >= move.config.remainingMoves) {
+								isComplete = true;
+							}
+							spliceList.push(a);
+						}
+					}
+				}
+				var spliceCounter = 0;
+				for (a = 0; a < spliceList.length; a++) { // For every route to splice
+					r.splice(spliceList[a] - spliceCounter, 1); // Destroy this route
+					spliceCounter++;
+				}
+			}
+			return newRoutes;
+		},
+		exhaust: function(r, base) {
+			var newRoutes = new Array(); // Create a new route array
+			var counter = 0; // Start counting from zero
+			var isComplete = false;
+			while (!isComplete) {
+				counter++;
+				var forgottenRoutes = r;
+				var amnesiaRoutes = new Array();
+				for (a = 0; a < r.length; a++) {
+					amnesiaRoutes.push(r[a][r[a].length - 1]);
+				}
+				amnesiaRoutes = move.number(amnesiaRoutes);
+				console.log(amnesiaRoutes);
+				for (a = 0; a < amnesiaRoutes.length; a++) { // For every route
+					if (amnesiaRoutes[a] != undefined) { // If it exists
+						if (amnesiaRoutes[a][amnesiaRoutes[a].length - 1] == base) { // If the last position is the base
+							console.log('Number of numbers passed = ' + counter);
+							console.log('Have to somehow join ' + r[a] + ' with ' + amnesiaRoutes);
+							newRoutes.push(r[a]);
+							if (counter >= move.config.remainingMoves) {
+								isComplete = true;
+							}
 						}
 					}
 				}
 			}
-		}
-		return newRoutes;
-	},
-	baseExplore: function(r, base) {
-		var newRoutes = new Array(); // Create a new route array
-		var counter = 0; // Start counting from zero
-		var spliceList = new Array();
-		var totalDesiredRoutes = 20;
-		var routesCounter = 0; // Start counting from zero
-		var isComplete = false;
-		while (!isComplete) {
-			counter++;
-			r = move.number(r);
-			for (a = 0; a < r.length; a++) { // For every route
-				if (r[a] != undefined) { // If it exists
-					if (r[a][r[a].length - 1] == base) { // If the last position is the base
-						console.log('Number of numbers passed = ' + counter);
-						console.log(r[a]);
-						newRoutes.push(r[a]);
-						routesCounter++;
-						if (routesCounter > totalDesiredRoutes) {
-							isComplete = true;
-						}
-						spliceList.push(a);
-					}
-				}
-			}
-			var spliceCounter = 0;
-			for (a = 0; a < spliceList.length; a++) { // For every route to splice
-				r.splice(spliceList[a] - spliceCounter, 1); // Destroy this route
-				spliceCounter++;
-			}
-		}
-		return newRoutes;
+			return newRoutes;
+		},
 	},
 }

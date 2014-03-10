@@ -7,6 +7,7 @@ map[1].adjacent = [2, 123, 0];
 map[2].adjacent = [3, 121, 1];
 map[3].adjacent = [4, 2];
 map[3].number = 1;
+map[3].lantern = [119, 121];
 map[4].adjacent = [5, 119, 3];
 map[5].adjacent = [6, 112, 4];
 map[6].adjacent = [7, 5];
