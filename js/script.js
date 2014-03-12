@@ -48,41 +48,71 @@ var move = {
 		}
 		return newRoutes;
 	},
-	number: function(r) {
-		var newRoutes = new Array();
-		newRoutes.route = new Array();
-		newRoutes.alley = new Array();
-		var numberList = new Array();
-		while (r.route[0] != undefined) {
-
-			// This is key to the development of route amnesia
-			r.route = move.id(r.route);
-
-			var totalRoutes = r.route.length;
-			var spliceList = new Array();
-			for (a = 0; a < totalRoutes; a++) { // For every route
-				if (map[r.route[a][r.route[a].length - 1]].number != undefined) { // If the last position contains a number
-					var newNumber = true;
-					for (c = 0; c < numberList.length; c++) { // For every number recorded
-						if (numberList[c] == map[r.route[a][r.route[a].length - 1]]) { // If the number has been recorded already
-							newNumber = false;
+	number: {
+		explore: function(r) {
+			var newRoutes = new Array();
+			newRoutes.route = new Array();
+			var numberList = new Array();
+			while (r.route[0] != undefined) {
+				r.route = move.id(r.route);
+				var totalRoutes = r.route.length;
+				var spliceList = new Array();
+				for (a = 0; a < totalRoutes; a++) { // For every route
+					if (map[r.route[a][r.route[a].length - 1]].number != undefined) { // If the last position contains a number
+						var newNumber = true;
+						for (c = 0; c < numberList.length; c++) { // For every number recorded
+							if (numberList[c] == r.route[a][r.route[a].length - 1]) { // If the number has been recorded already
+								newNumber = false;
+							}
 						}
+						if (newNumber) {
+							numberList.push(r.route[a][r.route[a].length - 1]);
+							newRoutes.route.push(r.route[a]); // Add the route to a list of possible next moves
+						}
+						spliceList.push(a);
 					}
-					if (newNumber) {
-						numberList.push(map[r.route[a][r.route[a].length - 1]]);
-						newRoutes.route.push(r.route[a]); // Add the route to a list of possible next moves
-						// Push alley data here
-					}
-					spliceList.push(a);
+				}
+				var counter = 0;
+				for (a = 0; a < spliceList.length; a++) { // For every route to splice
+					r.route.splice(spliceList[a] - counter, 1); // Destroy this route
+					counter++;
 				}
 			}
-			var counter = 0;
-			for (a = 0; a < spliceList.length; a++) { // For every route to splice
-				r.route.splice(spliceList[a] - counter, 1); // Destroy this route
-				counter++;
+			return newRoutes;
+		},
+		/* No no no
+		exhaust: function(r) {
+			var newRoutes = new Array();
+			newRoutes.alley = new Array();
+			var numberList = new Array();
+			while (r.alley[0] != undefined) {
+				r.alley = move.id(r.alley);
+				var totalalleys = r.alley.length;
+				var spliceList = new Array();
+				for (a = 0; a < totalalleys; a++) { // For every alley
+					if (map[r.alley[a][r.alley[a].length - 1]].number != undefined) { // If the last position contains a number
+						var newNumber = true;
+						for (c = 0; c < numberList.length; c++) { // For every number recorded
+							if (numberList[c] == r.alley[a][r.alley[a].length - 1]) { // If the number has been recorded already
+								newNumber = false;
+							}
+						}
+						if (newNumber) {
+							numberList.push(r.alley[a][r.alley[a].length - 1]);
+							newRoutes.alley.push(r.alley[a]); // Add the alley to a list of possible next moves
+						}
+						spliceList.push(a);
+					}
+				}
+				var counter = 0;
+				for (a = 0; a < spliceList.length; a++) { // For every alley to splice
+					r.alley.splice(spliceList[a] - counter, 1); // Destroy this alley
+					counter++;
+				}
 			}
-		}
-		return newRoutes;
+			return newRoutes;
+		},
+		*/
 	},
 	lantern: function(r) {
 		var newRoutes = new Array(); // Create a new route array
@@ -107,7 +137,7 @@ var route = {
 		var isComplete = false;
 		while (!isComplete) {
 			counter++;
-			r = move.number(r);
+			r = move.number.explore(r);
 			for (a = 0; a < r.route.length; a++) { // For every route
 				if (r.route[a][r.route[a].length - 1] == base) { // If the last position is the base
 					console.log('Number of numbers passed = ' + counter); console.log(r.route[a]);
@@ -124,7 +154,29 @@ var route = {
 		var isComplete = false;
 		while (!isComplete) {
 			counter++;
-			r = move.number(r);
+			if (route.config.amnesia) {
+				/* This is seriously doing my head in
+				for (a = 0; a < r.route.length; a++) { // For every route
+					var numberedIDPositions = new Array();
+					for (b = 0; b < r.route[a].length; b++) { // For every position
+						if (map[r.route[a][b]].number != undefined) { // If the ID is numbered
+							numberedIDPositions.push(b); // List all of the numbers
+						}
+					}
+					var dummyCharacter = new Array();
+					dummyCharacter.route = new Array();
+					dummyCharacter.route.push(r.route[a].slice(numberedIDPositions[numberedIDPositions.length - 1])); // Crop the end off the route
+					dummyCharacter = move.number.explore(dummyCharacter); // Advance this alley
+					for (b = 0; b < dummyCharacter.route.length; b++) { // For every route
+						dummyCharacter.route[b].splice(0, 0, r.route[a]); // Push the alleys back onto the routes
+					}
+					r.route = dummyCharacter.route;
+					console.log(dummyCharacter);
+					*/
+				}
+			} else {
+				r = move.number.explore(r);
+			}
 			for (a = 0; a < r.route.length; a++) { // For every route
 				if (r.route[a][r.route[a].length - 1] == base) { // If the last position is the base
 					console.log('Number of numbers passed = ' + counter); console.log(r.route[a]);
