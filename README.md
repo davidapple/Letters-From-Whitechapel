@@ -19,20 +19,20 @@ jack = start(ID);
 Move function
 -------------
 
-Advance an array of routes r.route by one ID
+Advance an array of routes by one ID
 ```javascript
 jack.route = move.id(jack.route);
 ```
 
-Advance an array of routes r.route to the next adjacent number
+Advance a character object to the next adjacent number
 ```javascript
-jack.route = move.number(jack.route);
+jack = move.number(jack);
 ```
 
 Route calculation
 -----------------
 
-The structure of a route variable
+Character object
 ```javascript
 jack.route[n] = [ID, ID, ID, ID, ID, ID];
 jack.number[n] = [n, undefined, n, undefined, undefined, n];
@@ -40,7 +40,7 @@ jack.routeAmnesia[n] = [ID]; // Up to and including the last numbered ID
 jack.safety[n] = [%, %, %, %, %, %];
 ```
 
-Advance an array of routes to an ID
+Advance a character object to an ID
 ```javascript
 jack = route.extensive(jack, ID);
 ```
