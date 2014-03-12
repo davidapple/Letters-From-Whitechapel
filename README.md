@@ -8,22 +8,31 @@ Aims
 
 Have Jack the Ripper's movements controled by AI. Find clues and arrest him using the five police charaters.
 
-Momement function
-------
+Move function
+-------------
 
-The current code is polluting the global namespace and must be transformed into a series of object literals, the most important controling movement accross the map. The movement object literal will operate as follows.
-
-Advance array of routes r by one ID
+Advance an array of routes r by one ID
 ```javascript
-r = move.id(r)
+r = move.id(r);
 ```
 
-Advance array of routes r to the next adjacent number
+Advance an array of routes r to the next adjacent number
 ```javascript
-r = move.number(r)
+r = move.number(r);
 ```
 
-Advance array of routes r until the base (at ID 300) is reached, within the remaining number of moves possible
+Route calculation
+-----------------
+
+The structure of a route variable
 ```javascript
-r = move.base.routes(r, 300)
+r.route[#] = [ID, ID, ID, ID, ID, ID];
+r.number[#] = [#, undefined, #, undefined, undefined, #];
+r.routeAmnesia[#] = [ID]; // Up to and including the last numbered ID
+r.safety[#] = [%, %, %, %, %, %];
+```
+
+Advance an array of routes to an ID
+```javascript
+r = route(r, ID);
 ```
