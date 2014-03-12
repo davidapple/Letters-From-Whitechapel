@@ -1,11 +1,11 @@
-console.log('Choose a start map ID for Jack. start(jack, 3) for example.');
+console.log('Choose a start map ID for Jack. jack = start(3) for example.');
 
-var jack = new Array();
-jack.route = new Array();
-
-function start(character, mapID) {
+function start(mapID) {
+	var character = new Array();
+	character.route = new Array();
 	character.route.push([mapID]);
-	console.log('Start position chosen. Create list of possible routes, type jack.route = route.id(jack.route, ID)');
+	console.log('Start position chosen. Create list of possible routes, type jack = route.extensive(jack, ID)');
+	return character;
 }
 
 var move = {
