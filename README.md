@@ -8,17 +8,25 @@ Aims
 
 Have Jack the Ripper's movements controled by AI. Find clues and arrest him using the five police charaters.
 
+Start function
+--------------
+
+Create Jack at a certain ID
+```javascript
+start(jack, ID);
+```
+
 Move function
 -------------
 
-Advance an array of routes r by one ID
+Advance an array of routes r.route by one ID
 ```javascript
-r = move.id(r);
+r.route = move.id(r.route);
 ```
 
-Advance an array of routes r to the next adjacent number
+Advance an array of routes r.route to the next adjacent number
 ```javascript
-r = move.number(r);
+r.route = move.number(r.route);
 ```
 
 Route calculation
@@ -34,5 +42,5 @@ r.safety[n] = [%, %, %, %, %, %];
 
 Advance an array of routes to an ID
 ```javascript
-r = route.id(r, ID);
+r = route.extensive(r, ID);
 ```
