@@ -34,5 +34,5 @@ r.safety[n] = [%, %, %, %, %, %];
 
 Advance an array of routes to an ID
 ```javascript
-r = route(r, ID);
+r = route.id(r, ID);
 ```
