@@ -118,6 +118,24 @@ var route = {
 		}
 		return newRoutes;
 	},
+	superExtensive: function(r, base) { // This is really intense and can be quite slow to complete
+		var newRoutes = new Array();
+		var completedRoutesCounter = 0;
+		whileLoop:
+		while (true) {
+			r.route = move.id(r.route);
+			for (a = 0; a < r.route.length; a++) { // For every route
+				if (r.route[a][r.route[a].length - 1] == base) {
+					newRoutes.push(r.route[a]);
+					completedRoutesCounter++;
+					if (completedRoutesCounter >= 5) {
+						break whileLoop;
+					}
+				}
+			}
+		}
+		return newRoutes;
+	},
 	extensive: function(r, base) {
 		var newRoutes = new Array();
 		var counter = 0;
