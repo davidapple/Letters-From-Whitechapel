@@ -118,6 +118,24 @@ var route = {
 		}
 		return newRoutes;
 	},
+	shortestRoutes: function(r, base) {
+		var newRoutes = new Array();
+		var routeCounter = 0;
+		var isComplete = false;
+		while (!isComplete) {
+			r = move.number.explore(r);
+			for (a = 0; a < r.route.length; a++) { // For every route
+				if (r.route[a][r.route[a].length - 1] == base) { // If the last position is the base
+					newRoutes.push(r.route[a]);
+					routeCounter++;
+					if (routeCounter >= route.config.remainingMoves) {
+						isComplete = true;
+					}
+				}
+			}
+		}
+		return newRoutes;
+	},
 	superExtensive: function(r, base) { // This is really intense and can be quite slow to complete
 		var newRoutes = new Array();
 		var completedRoutesCounter = 0;
@@ -128,7 +146,7 @@ var route = {
 				if (r.route[a][r.route[a].length - 1] == base) {
 					newRoutes.push(r.route[a]);
 					completedRoutesCounter++;
-					if (completedRoutesCounter >= 5) {
+					if (completedRoutesCounter >= 20) {
 						break whileLoop;
 					}
 				}
