@@ -97,7 +97,7 @@ var route = {
 	config: {
 		amnesia: true, // Can Jack double back on himself, visit the same space multiple times?
 		canPassBase: true, // Can Jack travel past his base?
-		remainingMoves: 19,
+		remainingMoves: 100,
 		lanterns: 3,
 		carriages: 3
 	},
