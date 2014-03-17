@@ -8,6 +8,22 @@
 /* Start
    ----- */
 
+   /*
+   	* Prepare the scene - Jack collects the special movement tokens
+   	* The targets are identified - Jack places women tokens facedown on red numbered circles
+   	* Patrolling the streets - The head of the investigation places the police patrol tokens
+   	* The victims are chosen - The women tokens marked red are replaced with wretched pawns
+   	* Blood on the streets - Jack chooses between killing or waiting
+   	* Suspense grows - The time of the crime token is moved, and each wreched pawn moves
+   	* Ready to kill - Jack reveals a police patrol token
+   	* A corpse on the sidewalk - Jack records on his sheet the number of the crime scene
+   	* Alarm whistles - Replace the marked police patrol tokens with the corresponding pawns
+   	--
+   	* Escape the night - Jack moves, records his location, and advances the pawn on the move track
+   	* Hunting the monster - Each policeman pawn moves
+   	* Clues and suspicion - Each policeman pawn either looks for clues or executes an arrest
+    */
+
 console.log('Choose a start map ID for Jack. jack = start(3) for example.');
 
 function start(mapID) {
