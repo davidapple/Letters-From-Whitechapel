@@ -51,10 +51,29 @@ function start(mapID) {
 	var character = new Array();
 	character.route = new Array();
 	character.route.push([mapID]);
-	character.alley = new Array(); // Used to enduce route amnesia
-	character.alley.push([mapID]);
 	console.log('Start position chosen. Create list of possible routes, type jack = route.extensive(jack, ID)');
 	return character;
+}
+
+/* Game
+   ---- */
+   
+var game = {
+	config: {
+		// base: ?,
+		state: 0,
+		remainingMoves: 100,
+		lanterns: 3,
+		carriages: 3,
+	},
+	init: function(state) {
+		if (state == 0) {
+			// Unbind the map
+			// Perform Jack's actions
+			// Instruct users to click the map
+			// Bind map to recieve desired data
+		}
+	}
 }
 
 /* Move
@@ -134,9 +153,6 @@ var route = {
 	config: {
 		amnesia: true, // Can Jack double back on himself, visit the same space multiple times?
 		canPassBase: true, // Can Jack travel past his base?
-		remainingMoves: 100,
-		lanterns: 3,
-		carriages: 3
 	},
 	shortest: function(r, base) {
 		var newRoutes = new Array();

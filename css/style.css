@@ -50,3 +50,13 @@
     background-color: #cc3333;
     color: #ffffff;
 }
+.move-tracker {
+	position: absolute;
+	top: 672px;
+}
+.move-tracker .label.active {
+	background-color: #5cb85c;
+}
+.move-tracker .label.murder {
+	background-color: #d9534f;
+}
