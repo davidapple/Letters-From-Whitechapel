@@ -36,19 +36,11 @@
 .map object svg {
     max-width: 100%;
 }
-.map .location {
+.map .location, .map .location-number {
     position: absolute;
-    display: block;
-    font-size: 10px;
-    background-color: #666666;
-    color: #ffffff;
-}
-.map .location-number {
-    position: absolute;
-    display: block;
-    font-size: 10px;
-    background-color: #cc3333;
-    color: #ffffff;
+    margin-top: -8px;
+    margin-left: -5px;
+    font-size: 9px;
 }
 .move-tracker {
 	position: absolute;
