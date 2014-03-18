@@ -42,6 +42,16 @@
     background-color: #666666;
     color: #ffffff;
 }
+.move-tracker {
+	position: absolute;
+	top: 672px;
+}
+.move-tracker .label.active {
+	background-color: #5cb85c;
+}
+.move-tracker .label.murder {
+	background-color: #d9534f;
+}
 
 /* Example location CSS - to be compiled on-the-fly by js */
 .map .location-1 {
