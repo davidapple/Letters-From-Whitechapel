@@ -5,6 +5,27 @@
  * @davidappleremix
  */
 
+ /* Draw
+   ----- */
+
+for (a = 0; a < map.length; a++) {
+	if (map[a].position != undefined) {
+		if (map[a].number != undefined) {
+			$('<a></a>', {
+				class: 'location-number location-' + a,
+				text: a + ' (' + map[a].number + ')',
+				style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+			}).prependTo('.map');
+		} else {
+			$('<a></a>', {
+				class: 'location location-' + a,
+				text: a,
+				style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+			}).prependTo('.map');
+		}
+	}
+}
+
 /* Start
    ----- */
 

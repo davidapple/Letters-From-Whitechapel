@@ -39,16 +39,14 @@
 .map .location {
     position: absolute;
     display: block;
+    font-size: 10px;
     background-color: #666666;
     color: #ffffff;
 }
-
-/* Example location CSS - to be compiled on-the-fly by js */
-.map .location-1 {
-    left: 98.165px;
-    top: 63px;
-}
-.map .location-2 {
-    left: 126.869px;
-    top: 67.251px;
+.map .location-number {
+    position: absolute;
+    display: block;
+    font-size: 10px;
+    background-color: #cc3333;
+    color: #ffffff;
 }
