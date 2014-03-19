@@ -42,12 +42,25 @@
     margin-left: -5px;
     font-size: 9px;
 }
+.map .location {
+    background-color: #333333;
+    font-size: 8px;
+}
+.map .location-number {
+    background-color: #ffffff;
+    color: #333333;
+}
 .move-tracker {
 	position: absolute;
 	top: 672px;
 }
+.move-tracker .tracker {
+    background-color: #ffffff;
+    color: #333333;
+}
 .move-tracker .label.active {
 	background-color: #5cb85c;
+    color: #ffffff;
 }
 .move-tracker .label.murder {
 	background-color: #d9534f;

@@ -25,7 +25,7 @@ var game = {
 	config: {
 		// base: ?,
 		state: 0,
-		remainingMoves: 100,
+		remainingMoves: 19,
 		lanterns: 3,
 		carriages: 3,
 	},
@@ -69,39 +69,26 @@ var move = {
 		}
 		return newRoutes;
 	},
-	number: {
-		// This function is only efficient at finding the shortest route
-		explore: function(r) {
-			var newRoutes = new Array();
-			newRoutes.route = new Array();
-			var numberList = new Array(); // This is very problematic
-			while (r.route[0] != undefined) {
-				r.route = move.id(r.route);
-				var totalRoutes = r.route.length;
-				var spliceList = new Array();
-				for (a = 0; a < totalRoutes; a++) { // For every route
-					if (map[r.route[a][r.route[a].length - 1]].number != undefined) { // If the last position contains a number
-						var newNumber = true;
-						for (c = 0; c < numberList.length; c++) { // For every number recorded
-							if (numberList[c] == r.route[a][r.route[a].length - 1]) { // If the number has been recorded already
-								newNumber = false;
-							}
-						}
-						if (newNumber) {
-							numberList.push(r.route[a][r.route[a].length - 1]);
-							newRoutes.route.push(r.route[a]); // Add the route to a list of possible next moves
-						}
-						spliceList.push(a);
-					}
-				}
-				var counter = 0;
-				for (a = 0; a < spliceList.length; a++) { // For every route to splice
-					r.route.splice(spliceList[a] - counter, 1); // Destroy this route
-					counter++;
+	number: function(r) {
+		var newRoutes = new Array();
+		newRoutes.route = new Array();
+		while (r.route[0] != undefined) {
+			r.route = move.id(r.route);
+			var totalRoutes = r.route.length;
+			var spliceList = new Array();
+			for (a = 0; a < totalRoutes; a++) { // For every route
+				if (map[r.route[a][r.route[a].length - 1]].number != undefined) { // If the last position contains a number
+					newRoutes.route.push(r.route[a]); // Add the route to a list of possible next moves
+					spliceList.push(a);
 				}
 			}
-			return newRoutes;
-		},
+			var counter = 0;
+			for (a = 0; a < spliceList.length; a++) { // For every route to splice
+				r.route.splice(spliceList[a] - counter, 1); // Destroy this route
+				counter++;
+			}
+		}
+		return newRoutes;
 	},
 	lantern: function(r) {
 		var newRoutes = new Array(); // Create a new route array
@@ -119,72 +106,14 @@ var route = {
 	},
 	shortest: function(r, base) {
 		var newRoutes = new Array();
-		var counter = 0;
-		var isComplete = false;
-		while (!isComplete) {
-			counter++;
-			r = move.number.explore(r);
-			for (a = 0; a < r.route.length; a++) { // For every route
-				if (r.route[a][r.route[a].length - 1] == base) { // If the last position is the base
-					console.log('Number of numbers passed = ' + counter); console.log(r.route[a]);
-					newRoutes.push(r.route[a]);
-					isComplete = true;
-				}
-			}
-		}
-		return newRoutes;
-	},
-	shortestRoutes: function(r, base) {
-		var newRoutes = new Array();
-		var routeCounter = 0;
-		var isComplete = false;
-		while (!isComplete) {
-			r = move.number.explore(r);
-			for (a = 0; a < r.route.length; a++) { // For every route
-				if (r.route[a][r.route[a].length - 1] == base) { // If the last position is the base
-					newRoutes.push(r.route[a]);
-					routeCounter++;
-					if (routeCounter >= route.config.remainingMoves) {
-						isComplete = true;
-					}
-				}
-			}
-		}
-		return newRoutes;
-	},
-	superExtensive: function(r, base) { // This is really intense and can be quite slow to complete
-		var newRoutes = new Array();
-		var completedRoutesCounter = 0;
-		whileLoop:
+		search:
 		while (true) {
-			r.route = move.id(r.route);
-			for (a = 0; a < r.route.length; a++) { // For every route
-				if (r.route[a][r.route[a].length - 1] == base) {
-					newRoutes.push(r.route[a]);
-					completedRoutesCounter++;
-					if (completedRoutesCounter >= 20) {
-						break whileLoop;
-					}
-				}
-			}
-		}
-		return newRoutes;
-	},
-	extensive: function(r, base) {
-		var newRoutes = new Array();
-		var counter = 0;
-		var isComplete = false;
-		while (!isComplete) {
-			counter++;
-			r = move.number.explore(r); // Only send one array into this function at a time
+			r = move.number(r);
 			for (a = 0; a < r.route.length; a++) { // For every route
 				if (r.route[a][r.route[a].length - 1] == base) { // If the last position is the base
-					console.log('Number of numbers passed = ' + counter); console.log(r.route[a]);
 					newRoutes.push(r.route[a]);
+					break search;
 				}
-			}
-			if (counter >= route.config.remainingMoves) {
-				isComplete = true;
 			}
 		}
 		return newRoutes;
