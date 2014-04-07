@@ -50,6 +50,10 @@
     background-color: #ffffff;
     color: #333333;
 }
+.map .location-murder {
+    background-color: #ff0000;
+    color: #ffffff;
+}
 .move-tracker {
 	position: absolute;
 	top: 672px;

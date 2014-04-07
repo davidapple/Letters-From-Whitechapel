@@ -12,7 +12,9 @@ var game = {
 		state: 0,
 		remainingMoves: 15,
 		lanterns: 3,
-		carriages: 3
+		carriages: 3,
+		women: 8,
+		wretched: 4
 	},
 	nextState: function() {
 		$('.state').hide();
@@ -23,11 +25,24 @@ var game = {
 				game.nextState();
 			});
 			$('<p></p>', {
-				text: 'Carriages: ' + game.config.carriages + ' Lanterns: ' + game.config.lanterns,
+				text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
 			}).prependTo('.prepare-the-scene');
 		}
 		if (game.config.state == 1) { /* The targets are identified */
 			$('.the-targets-are-identified').show();
+			$('<p></p>', {
+				text: 'Jack places ' + game.config.women + ' women tokens (' + game.config.wretched + ' of which are marked) facedown on red numbered circles.'
+			}).prependTo('.the-targets-are-identified');
+			for (a = 0; a < map.length; a++) {
+				if (map[a].murder) {
+					$('<p></p>', {
+						text: a + ' marked',
+					}).appendTo('.the-targets-are-identified');
+					$('<p></p>', {
+						text: a + ' not marked',
+					}).appendTo('.the-targets-are-identified');
+				}
+			}
 		}
 	}
 }
@@ -39,8 +54,9 @@ var draw = {
 		for (a = 0; a < map.length; a++) {
 			if (map[a].position != undefined) {
 				if (map[a].number != undefined) {
+					var murder = (map[a].murder ? ' location-murder' : '');
 					$('<span></span>', {
-						class: 'label label-primary location-number location-' + a,
+						class: 'label label-primary location-number location-' + a + murder,
 						text: a,
 						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 					}).prependTo('.map');
