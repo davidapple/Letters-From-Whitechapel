@@ -14,7 +14,9 @@ var game = {
 		lanterns: 3,
 		carriages: 3,
 		women: 8,
-		wretched: 4
+		wretched: 4,
+		womenMarked: new Array(),
+		womenUnmarked: new Array()
 	},
 	nextState: function() {
 		$('.state').hide();
@@ -29,6 +31,7 @@ var game = {
 			}).prependTo('.prepare-the-scene');
 		}
 		if (game.config.state == 1) { /* The targets are identified */
+			game.config.womenMarked = new Array();
 			$('.the-targets-are-identified').show();
 			$('<p></p>', {
 				text: 'Jack places ' + game.config.women + ' women tokens (' + game.config.wretched + ' of which are marked) facedown on red numbered circles.'
@@ -37,12 +40,31 @@ var game = {
 				if (map[a].murder) {
 					$('<p></p>', {
 						text: a + ' marked',
+						'data-mapid': a,
+						class: 'marked'
 					}).appendTo('.the-targets-are-identified');
 					$('<p></p>', {
 						text: a + ' not marked',
+						'data-mapid': a,
+						class: 'unmarked'
 					}).appendTo('.the-targets-are-identified');
 				}
 			}
+			$('.the-targets-are-identified p').click(function(){
+				var mapid = $(this).data('mapid');
+				if (game.config.womenMarked.length < (game.config.women - game.config.wretched) && $(this).hasClass('marked')) {
+					$(this).addClass('selected');
+					game.config.womenMarked.push(mapid);
+				}
+				if (game.config.womenUnmarked.length < game.config.wretched && $(this).hasClass('unmarked')) {
+					$(this).addClass('selected');
+					game.config.womenUnmarked.push(mapid);
+				}
+				if (game.config.womenMarked.length >= (game.config.women - game.config.wretched) && game.config.womenUnmarked.length >= game.config.wretched) {
+					game.config.state = 2;
+					game.nextState();
+				}
+			});
 		}
 	}
 }

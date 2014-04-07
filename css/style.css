@@ -69,3 +69,6 @@
 .move-tracker .label.murder {
 	background-color: #d9534f;
 }
+.the-targets-are-identified p.selected {
+    background-color: #eeeeee;
+}
