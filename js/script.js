@@ -52,13 +52,27 @@ var game = {
 			}
 			$('.the-targets-are-identified p').click(function(){
 				var mapid = $(this).data('mapid');
-				if (game.config.womenMarked.length < (game.config.women - game.config.wretched) && $(this).hasClass('marked')) {
-					$(this).addClass('selected');
-					game.config.womenMarked.push(mapid);
+				if ($(this).hasClass('marked')) {
+					if ($(this).hasClass('selected')) {
+						$(this).removeClass('selected');
+						game.config.womenMarked.splice($.inArray(mapid, game.config.womenMarked), 1);
+					} else {
+						if (game.config.womenMarked.length < (game.config.women - game.config.wretched)) {
+							$(this).addClass('selected');
+							game.config.womenMarked.push(mapid);
+						}
+					}
 				}
-				if (game.config.womenUnmarked.length < game.config.wretched && $(this).hasClass('unmarked')) {
-					$(this).addClass('selected');
-					game.config.womenUnmarked.push(mapid);
+				if ($(this).hasClass('unmarked')) {
+					if ($(this).hasClass('selected')) {
+						$(this).removeClass('selected');
+						game.config.womenUnmarked.splice($.inArray(mapid, game.config.womenUnmarked), 1);
+					} else {
+						if (game.config.womenUnmarked.length < game.config.wretched) {
+							$(this).addClass('selected');
+							game.config.womenUnmarked.push(mapid);
+						}
+					}
 				}
 				if (game.config.womenMarked.length >= (game.config.women - game.config.wretched) && game.config.womenUnmarked.length >= game.config.wretched) {
 					game.config.state = 2;
