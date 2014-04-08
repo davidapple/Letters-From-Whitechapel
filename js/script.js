@@ -39,19 +39,21 @@ var game = {
 			}).prependTo('.the-targets-are-identified');
 			for (a = 0; a < map.length; a++) {
 				if (map[a].murder) {
-					$('<p></p>', {
+					$('<span></span>', {
 						text: a + ' marked',
 						'data-mapid': a,
-						class: 'token-woman token-woman-' + a + ' marked'
-					}).appendTo('.the-targets-are-identified');
-					$('<p></p>', {
+						class: 'label label-info selectable token-woman marked token-woman-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
+					$('<span></span>', {
 						text: a + ' not marked',
 						'data-mapid': a,
-						class: 'token-woman token-woman-' + a +' unmarked'
-					}).appendTo('.the-targets-are-identified');
+						class: 'label label-info selectable token-woman unmarked token-woman-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
 				}
 			}
-			$('.the-targets-are-identified p').click(function(){
+			$('.token-woman').click(function(){
 				var mapid = $(this).data('mapid');
 				if ($(this).hasClass('marked')) {
 					if ($(this).hasClass('selected')) {
@@ -92,6 +94,19 @@ var game = {
 					$('.the-targets-are-identified .next-state').hide();
 				}
 			});
+		}
+		if (game.config.state == 2) { /* Patrolling the streets */
+			$('.token-woman').remove();
+			for (a = 0; a < map.length; a++) {
+				if (($.inArray(a, game.config.womenMarked) !== -1) || ($.inArray(a, game.config.womenUnmarked) !== -1)) {
+					$('<span></span>', {
+						text: 'woman',
+						'data-mapid': a,
+						class: 'label label-info token-woman token-woman-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
+				}
+			}
 		}
 	}
 }

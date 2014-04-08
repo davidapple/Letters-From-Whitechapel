@@ -54,6 +54,22 @@
     background-color: #ff0000;
     color: #ffffff;
 }
+.map .token-woman {
+    position: absolute;
+    margin-top: 8px;
+    margin-left: -5px;
+    font-size: 9px;
+}
+.map .token-woman.selectable {
+    .cursor: pointer;
+    cursor: hand;
+}
+.map .token-woman.unmarked {
+    margin-top: 22px;
+}
+.map .token-woman.selected {
+    background-color: #eeeeee;
+}
 .move-tracker {
 	position: absolute;
 	top: 672px;
@@ -68,7 +84,4 @@
 }
 .move-tracker .label.murder {
 	background-color: #d9534f;
-}
-.the-targets-are-identified p.selected {
-    background-color: #eeeeee;
 }
