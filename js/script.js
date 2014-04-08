@@ -42,12 +42,12 @@ var game = {
 					$('<p></p>', {
 						text: a + ' marked',
 						'data-mapid': a,
-						class: 'marked'
+						class: 'token-woman token-woman-' + a + ' marked'
 					}).appendTo('.the-targets-are-identified');
 					$('<p></p>', {
 						text: a + ' not marked',
 						'data-mapid': a,
-						class: 'unmarked'
+						class: 'token-woman token-woman-' + a +' unmarked'
 					}).appendTo('.the-targets-are-identified');
 				}
 			}
@@ -61,6 +61,10 @@ var game = {
 						if (game.config.womenMarked.length < (game.config.women - game.config.wretched)) {
 							$(this).addClass('selected');
 							game.config.womenMarked.push(mapid);
+							if ($(this).next().hasClass('selected')) {
+								$(this).next().removeClass('selected');
+								game.config.womenUnmarked.splice($.inArray(mapid, game.config.womenUnmarked), 1);
+							}
 						}
 					}
 				}
@@ -72,6 +76,10 @@ var game = {
 						if (game.config.womenUnmarked.length < game.config.wretched) {
 							$(this).addClass('selected');
 							game.config.womenUnmarked.push(mapid);
+							if ($(this).prev().hasClass('selected')) {
+								$(this).prev().removeClass('selected');
+								game.config.womenMarked.splice($.inArray(mapid, game.config.womenMarked), 1);
+							}
 						}
 					}
 				}
