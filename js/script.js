@@ -33,6 +33,7 @@ var game = {
 		if (game.config.state == 1) { /* The targets are identified */
 			game.config.womenMarked = new Array();
 			$('.the-targets-are-identified').show();
+			$('.the-targets-are-identified .next-state').hide();
 			$('<p></p>', {
 				text: 'Jack places ' + game.config.women + ' women tokens (' + game.config.wretched + ' of which are marked) facedown on red numbered circles.'
 			}).prependTo('.the-targets-are-identified');
@@ -75,8 +76,12 @@ var game = {
 					}
 				}
 				if (game.config.womenMarked.length >= (game.config.women - game.config.wretched) && game.config.womenUnmarked.length >= game.config.wretched) {
-					game.config.state = 2;
-					game.nextState();
+					$('.the-targets-are-identified .next-state').show().click(function(){
+						game.config.state = 2;
+						game.nextState();
+					});
+				} else {
+					$('.the-targets-are-identified .next-state').hide();
 				}
 			});
 		}
