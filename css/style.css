@@ -54,21 +54,28 @@
     background-color: #ff0000;
     color: #ffffff;
 }
-.map .token-woman {
+.map .location-station {
+    background-color: #663399;
+    color: #ffffff;
+}
+.map .token {
     position: absolute;
     margin-top: 8px;
     margin-left: -5px;
     font-size: 9px;
 }
-.map .token-woman.selectable {
+.map .token.selectable {
     .cursor: pointer;
     cursor: hand;
 }
-.map .token-woman.unmarked {
+.map .token.unmarked {
     margin-top: 22px;
 }
-.map .token-woman.selected {
+.map .token.selected {
     background-color: #eeeeee;
+}
+.map .token.revealed {
+    background-color: #ff00ff;
 }
 .move-tracker {
 	position: absolute;
