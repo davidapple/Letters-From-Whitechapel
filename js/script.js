@@ -8,7 +8,7 @@
    ---- */
 var game = {
 	config: {
-		// base: ?,
+		base: 152, /* Preprogrammed. TODO: Makke this selection random */
 		state: 0,
 		remainingMoves: 15,
 		lanterns: 3,
@@ -36,69 +36,13 @@ var game = {
 			}).prependTo('.prepare-the-scene');
 		}
 		if (game.config.state == 1) { /* The targets are identified */
-			$('.the-targets-are-identified').show();
-			$('.the-targets-are-identified .next-state').hide();
-			$('<p></p>', {
-				text: 'Jack places ' + game.config.women + ' women tokens (' + game.config.wretched + ' of which are marked) facedown on red numbered circles.'
-			}).prependTo('.the-targets-are-identified');
-			for (a = 0; a < map.length; a++) {
-				if (map[a].murder) {
-					$('<span></span>', {
-						text: a + ' marked',
-						'data-mapid': a,
-						class: 'label label-info selectable token token-woman marked token-woman-' + a,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).appendTo('.map');
-					$('<span></span>', {
-						text: a + ' not marked',
-						'data-mapid': a,
-						class: 'label label-info selectable token token-woman unmarked token-woman-' + a,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).appendTo('.map');
-				}
-			}
-			$('.token-woman').click(function(){
-				var mapid = $(this).data('mapid');
-				if ($(this).hasClass('marked')) {
-					if ($(this).hasClass('selected')) {
-						$(this).removeClass('selected');
-						game.config.womenMarked.splice($.inArray(mapid, game.config.womenMarked), 1);
-					} else {
-						if (game.config.womenMarked.length < (game.config.women - game.config.wretched)) {
-							$(this).addClass('selected');
-							game.config.womenMarked.push(mapid);
-							if ($(this).next().hasClass('selected')) {
-								$(this).next().removeClass('selected');
-								game.config.womenUnmarked.splice($.inArray(mapid, game.config.womenUnmarked), 1);
-							}
-						}
-					}
-				}
-				if ($(this).hasClass('unmarked')) {
-					if ($(this).hasClass('selected')) {
-						$(this).removeClass('selected');
-						game.config.womenUnmarked.splice($.inArray(mapid, game.config.womenUnmarked), 1);
-					} else {
-						if (game.config.womenUnmarked.length < game.config.wretched) {
-							$(this).addClass('selected');
-							game.config.womenUnmarked.push(mapid);
-							if ($(this).prev().hasClass('selected')) {
-								$(this).prev().removeClass('selected');
-								game.config.womenMarked.splice($.inArray(mapid, game.config.womenMarked), 1);
-							}
-						}
-					}
-				}
-				if (game.config.womenMarked.length >= (game.config.women - game.config.wretched) && game.config.womenUnmarked.length >= game.config.wretched) {
-					$('.the-targets-are-identified .next-state').show().click(function(){
-						$('.token-woman').remove();
-						game.config.state = 2;
-						game.nextState();
-					});
-				} else {
-					$('.the-targets-are-identified .next-state').hide();
-				}
-			});
+			
+			/* Preprogrammed. TODO: Makke this selection random */
+			game.config.womenMarked = [232, 346, 148, 22];
+			game.config.womenUnmarked = [8, 94, 182, 421];
+
+			game.config.state = 2;
+			game.nextState();
 		}
 		if (game.config.state == 2) { /* Patrolling the streets */
 			$('.patrolling-the-streets').show();
@@ -175,45 +119,23 @@ var game = {
 			});
 		}
 		if (game.config.state == 3) { /* Blood on the streets */
-			for (a = 0; a < map.length; a++) {
-				if ($.inArray(a, game.config.womenMarked) !== -1) {
-					$('<span></span>', {
-						text: 'wretched',
-						'data-mapid': a,
-						class: 'label label-info selectable token token-wretched token-wretched-' + a,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).appendTo('.map');
-				}
-				if ($.inArray(a, game.config.policeRevealed) !== -1) {
-					if ($.inArray(a, game.config.policeMarked) !== -1) {
-						$('<span></span>', {
-							text: 'real police',
-							'data-mapid': a,
-							class: 'label label-info revealed token token-police token-police-' + a,
-							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-						}).appendTo('.map');
-					}
-				} else {
-					if (($.inArray(a, game.config.policeMarked) !== -1) || ($.inArray(a, game.config.policeUnmarked) !== -1)) {
-						$('<span></span>', {
-							text: 'police',
-							'data-mapid': a,
-							class: 'label label-info selectable token token-police token-police-' + a,
-							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-						}).appendTo('.map');
-					}
-				}
-			}
-			$('.token-police.selectable').click(function(){
-				var mapid = $(this).data('mapid');
+			
+			/* Preprogrammed to reveal the policeman at 76. TODO: Makke this selection random */
+			if (game.config.policeRevealed == 0) {
+				var mapid = 76;
 				if ($.inArray(mapid, game.config.policeUnmarked)) {
 					game.config.policeRevealed.push(mapid);
-					$('.token-wretched').remove();
-					$('.token-police').remove();
 					game.config.state = 4;
 					game.nextState();
 				}
-			});
+			} else {
+				/* Preprogrammed to murder at 22. TODO: Makke this selection random */
+				var mapid = 22;
+				game.config.murder = mapid;
+				game.config.state = 5;
+				game.nextState();
+			}
+
 		}
 		if (game.config.state == 4) { /* Suspense grows */
 			for (a = 0; a < map.length; a++) {
