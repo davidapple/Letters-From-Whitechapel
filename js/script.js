@@ -36,10 +36,24 @@ var game = {
 			}).prependTo('.prepare-the-scene');
 		}
 		if (game.config.state == 1) { /* The targets are identified */
-			
-			/* Preprogrammed. TODO: Makke this selection random */
-			game.config.womenMarked = [232, 346, 148, 22];
-			game.config.womenUnmarked = [8, 94, 182, 421];
+
+			var murderLocations = new Array(); // Create an array of murder spots on the map
+			for (a = 0; a < map.length; a++) {
+				if (map[a].murder) {
+					murderLocations.push(a);
+				}
+			}
+
+			while (game.config.womenMarked.length < game.config.wretched) { 
+				var randomIndex = Math.floor(Math.random() * murderLocations.length);
+				game.config.womenMarked.push(murderLocations[randomIndex]); // Randomly select wreched
+				murderLocations.splice(randomIndex, 1); // Prevent possibility of choosing duplicate locations
+			}
+			while (game.config.womenUnmarked.length < (game.config.women - game.config.wretched)) {
+				var randomIndex = Math.floor(Math.random() * murderLocations.length);
+				game.config.womenUnmarked.push(murderLocations[randomIndex]); // Randomly select unmarked women
+				murderLocations.splice(randomIndex, 1); // Prevent possibility of choosing duplicate locations
+			}
 
 			game.config.state = 2;
 			game.nextState();
