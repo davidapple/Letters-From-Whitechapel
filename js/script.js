@@ -21,7 +21,8 @@ var game = {
 		womenUnmarked: new Array(),
 		policeMarked: new Array(),
 		policeUnmarked: new Array(),
-		policeRevealed: new Array()
+		policeRevealed: new Array(),
+		murder: new Array()
 	},
 	nextState: function() {
 		$('.state').hide();
@@ -145,13 +146,16 @@ var game = {
 			} else {
 				/* Preprogrammed to murder at 22. TODO: Makke this selection random */
 				var mapid = 22;
-				game.config.murder = mapid;
+				game.config.murder.push(mapid);
 				game.config.state = 5;
 				game.nextState();
 			}
 
 		}
 		if (game.config.state == 4) { /* Suspense grows */
+			var movedWretched = 0;
+			$('.suspense-grows').show();
+			$('.suspense-grows .next-state').hide();
 			for (a = 0; a < map.length; a++) {
 				if ($.inArray(a, game.config.womenMarked) !== -1) {
 					$('<span></span>', {
@@ -197,6 +201,15 @@ var game = {
 						}
 						$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
 						$('.token-move-wretched').remove();
+						movedWretched++;
+						console.log(movedWretched); // Currently counts up to 4. TODO: Add all adjacentNumbers to map so that this works
+						if (movedWretched >= game.config.women) {
+							$('.suspense-grows .next-state').show().click(function(){
+								$('.token-wretched').remove();
+								game.config.state = 3;
+								game.nextState();
+							});
+						}
 					}).appendTo('.map');
 				}
 				$('.token-wretched-' + mapid).remove();
