@@ -11,7 +11,7 @@ map[2].adjacent = [3, 121, 1];
 map[3].position = [164.142,31.381];
 map[3].adjacent = [4, 2];
 map[3].number = 1;
-map[3].adjacentNumber = [6, 166, 113, 110, 119, 121, 123, 124];
+map[3].adjacentNumber = [6, 116, 113, 110, 119, 121, 123, 124];
 map[3].lantern = [119, 121];
 map[4].position = [188.66, 34.386];
 map[4].adjacent = [5, 119, 3];
@@ -272,7 +272,7 @@ map[82].adjacentNumber = [83, 66, 55, 64, 86, 92, 80];
 map[83].position = [491.875, 128.324];
 map[83].adjacent = [84, 67];
 map[83].number = 32;
-map[83].adjacentNumber = [66, 55, 62, 86, 82, 74, 68];
+map[83].adjacentNumber = [66, 55, 64, 86, 82, 74, 68];
 map[84].position = [496.466, 144.771];
 map[84].adjacent = [65, 85, 82, 83];
 map[85].position = [507, 182.5];
@@ -395,7 +395,7 @@ map[123].adjacentNumber = [3, 121, 119, 146, 125, 124];
 map[124].position = [97.434, 123.226];
 map[124].adjacent = [0, 122, 126];
 map[124].number = 24;
-map[124].adjacentNumber = [3, 123, 121, 119, 127, 125, 139, 130];
+map[124].adjacentNumber = [3, 123, 121, 119, 146, 125, 133, 130];
 map[125].position = [121.302, 149.73];
 map[125].adjacent = [122, 127, 126];
 map[125].number = 25;
@@ -419,7 +419,7 @@ map[132].adjacent = [133, 131, 128]; // 146?
 map[133].position = [131.58, 240.128];
 map[133].adjacent = [134, 132];
 map[133].number = 59;
-map[133].adjacentNumber = [146, 137, 140, 204, 220, 30, 124, 125];
+map[133].adjacentNumber = [146, 137, 140, 204, 220, 130, 124, 125];
 map[134].position = [139.255, 259.624];
 map[134].adjacent = [137, 135, 133];
 map[135].position = [150.425, 291.871];
@@ -509,7 +509,7 @@ map[162].adjacent = [161, 165, 163];
 map[163].position = [843.433, 171.139];
 map[163].adjacent = [162, 164, 31];
 map[163].number = 58;
-map[163].adjacentNumber = [29, 160, 394, 167, 166, 36, 34, 32];
+map[163].adjacentNumber = [29, 160, 394, 167, 165, 36, 34, 32];
 map[164].position = [780.73, 193.398];
 map[164].adjacent = [163, 165, 33];
 map[165].position = [785.616, 213.65];
@@ -618,21 +618,25 @@ map[199].adjacent = [198, 200];
 map[200].position = [276.298, 382.97];
 map[200].adjacent = [199, 201];
 map[200].number = 117;
+map[200].adjacentNumber = [194, 269, 267, 209, 206, 202];
 map[201].position = [261.066, 356.957];
 map[201].adjacent = [200, 202];
 map[202].position = [240.767, 321.489];
 map[202].adjacent = [201, 203, 141];
 map[202].number = 97;
+map[202].adjacentNumber = [142, 200, 206, 216, 204, 140, 143];
 map[203].position = [197.502, 343.837];
 map[203].adjacent = [202, 205, 204];
 map[204].position = [187.315, 330.266];
 map[204].adjacent = [203, 218, 136];
 map[204].number = 96;
+map[204].adjacentNumber = [140, 202, 206, 216, 217, 222, 227, 220, 133, 137];
 map[205].position = [216.024, 364.064];
 map[205].adjacent = [206, 216, 203];
 map[206].position = [239.438, 386.555];
 map[206].adjacent = [207, 205];
 map[206].number = 116;
+map[206].adjacentNumber = [202, 200, 194, 269, 267, 209, 216, 204];
 map[207].position = [260.155, 411.997];
 map[207].adjacent = [208, 206];
 map[208].position = [282.497, 440.743];
@@ -641,6 +645,7 @@ map[208].adjacent = [198, 270, 267, 209, 207];
 map[209].position = [250.356, 459.283];
 map[209].adjacent = [208, 210];
 map[209].number = 139;
+map[209].adjacentNumber = [200, 194, 269, 267, 239, 238, 236, 232, 233, 212, 206];
 map[210].position = [215.854, 478.882];
 map[210].adjacent = [209, 239, 211];
 map[210].station = true;
@@ -649,16 +654,19 @@ map[211].adjacent = [210, 239, 235, 212];
 map[212].position = [150, 463];
 map[212].adjacent = [211, 213];
 map[212].number = 138;
+map[212].adjacentNumber = [209, 239, 238, 236, 232, 233, 230, 225, 222, 217, 214];
 map[213].position = [134, 442];
 map[213].adjacent = [214, 212, 223];
 map[214].position = [144, 417];
 map[214].adjacent = [215, 213];
 map[214].number = 137;
+map[214].adjacentNumber = [216, 212, 233, 230, 225, 222, 217];
 map[215].position = [160, 398];
 map[215].adjacent = [216, 214, 217];
 map[216].position = [194, 384];
 map[216].adjacent = [205, 215];
 map[216].number = 115;
+map[216].adjacentNumber = [202, 206, 214, 217, 204];
 map[217].position = [142, 385];
 map[217].adjacent = [218, 215, 223];
 map[217].number = 114;
@@ -1202,5 +1210,18 @@ function debugMap() {
 			}
 		}
 	}
-	return errorCount++ + ' errors';
+
+	for (a = 0; a < map.length; a++) { // For every place
+		if (map[a].adjacentNumber) { // If adjacent numbers are listed
+			for (b = 0; b < map[a].adjacentNumber.length; b++) { // For every adjacent number listed
+				if (!(map[ map[a].adjacentNumber[b] ].number)) { // If the adjacent number listed has a number
+					errorCount++;
+					console.log(errorCount + ': The position with an ID of ' + map[a].adjacentNumber[b] + ' is not a numbered position. Position ' + a + ' is listing this as an adjacent number.');
+				}
+			}
+		}
+	}
+
+	return errorCount + ' errors';
+
 }
