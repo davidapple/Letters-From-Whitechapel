@@ -143,7 +143,7 @@ var game = {
 					$('<span></span>', {
 						text: 'wretched',
 						'data-mapid': a,
-						class: 'label label-info token token-wretched token-wretched-' + a,
+						class: 'label label-info selectable token token-wretched token-wretched-' + a,
 						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 					}).appendTo('.map');
 				}
@@ -167,6 +167,26 @@ var game = {
 					}
 				}
 			}
+			$('.token-wretched').click(function(){
+				var mapid = $(this).data('mapid');
+				for (b = 0; b < map[mapid].adjacentNumber.length; b++) {
+					$('<span></span>', {
+						text: 'move here',
+						'data-mapidPrev': mapid,
+						'data-mapid': map[mapid].adjacentNumber[b],
+						class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
+						style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
+					}).click(function(){
+						var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
+						if (index !== -1) {
+							game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
+						}
+						$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
+						$('.token-move-wretched').remove();
+					}).appendTo('.map');
+				}
+				$('.token-wretched-' + mapid).remove();
+			});
 		}
 	}
 }
