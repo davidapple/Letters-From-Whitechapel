@@ -228,16 +228,18 @@ var draw = {
 					var murder = (map[a].murder ? ' location-murder' : '');
 					$('<span></span>', {
 						class: 'label label-primary location-number location-' + a + murder,
-						text: a,
+						text: map[a].number,
 						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 					}).prependTo('.map');
 				} else {
-					var station = (map[a].station ? ' location-station' : '');
-					$('<span></span>', {
-						class: 'label label-default location location-' + a + station,
-						text: a,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).prependTo('.map');
+					if (map[a].station) {
+						var station = ' location-station';
+						$('<span></span>', {
+							class: 'label label-default location location-' + a + station,
+							text: 's',
+							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+						}).prependTo('.map');
+					}
 				}
 			}
 		}
