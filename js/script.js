@@ -203,7 +203,7 @@ var game = {
 						$('.token-move-wretched').remove();
 						movedWretched++;
 						console.log(movedWretched); // Currently counts up to 4. TODO: Add all adjacentNumbers to map so that this works
-						if (movedWretched >= game.config.women) {
+						if (movedWretched >= game.config.wretched) {
 							$('.suspense-grows .next-state').show().click(function(){
 								$('.token-wretched').remove();
 								game.config.state = 3;
