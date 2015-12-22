@@ -8,7 +8,6 @@
    ---- */
 var game = {
 	config: {
-		base: 152, /* Preprogrammed. TODO: Makke this selection random */
 		state: 0,
 		totalMoves: 20,
 		remainingMoves: 15,
@@ -18,6 +17,7 @@ var game = {
 		wretched: 4,
 		police: 7,
 		fakePolice: 2,
+		jack: new Array(),
 		womenMarked: new Array(),
 		womenUnmarked: new Array(),
 		policeMarked: new Array(),
@@ -35,8 +35,17 @@ var game = {
 				game.nextState();
 			});
 			$('<p></p>', {
-				text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
+				text: 'Jack chooses a base and collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
 			}).prependTo('.prepare-the-scene');
+
+			var numberedLocation = new Array();
+			for (a = 1; a < map.length; a++) {
+				if (map[a].number) {
+					numberedLocation.push(a);
+				}
+			}
+			game.config.base = numberedLocation[Math.floor(Math.random() * numberedLocation.length) + 1]; // Randomly select a base
+
 		} else if (game.config.state == 1) { /* The targets are identified */
 
 			var murderLocations = new Array(); // Create an array of murder spots on the map
@@ -139,15 +148,17 @@ var game = {
 			}).prependTo('state.blood-on-the-streets');
 			
 			if (game.config.totalMoves > game.config.remainingMoves) { // If Jack has enough moves to reveal a police token
-				/* Preprogrammed to reveal the policeman at 76. TODO: Makke this selection random */
 				if (game.config.policeRevealed == 0) {
-					var mapid = 76;
-					if ($.inArray(mapid, game.config.policeUnmarked)) {
-						game.config.policeRevealed.push(mapid);
-						game.config.remainingMoves++;
-						game.config.state = 5;
-						game.nextState();
+					var randomIndex = Math.floor(Math.random() * (game.config.policeMarked.length + game.config.policeUnmarked.length)) + 1; // Randomly select a police (marked or unmarked)
+					if (randomIndex <= game.config.policeMarked.length) {
+						var mapid = game.config.policeMarked[randomIndex - 1];
+					} else {
+						var mapid = game.config.policeUnmarked[randomIndex - game.config.policeMarked.length - 1];
 					}
+					game.config.policeRevealed.push(mapid);
+					game.config.remainingMoves++;
+					game.config.state = 5;
+					game.nextState();
 				} else {
 					var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
 					var mapid = game.config.womenMarked[randomIndex];
@@ -169,6 +180,11 @@ var game = {
 			$('<p></p>', {
 				text: 'The time of the crime token is moved, and each wreched pawn moves.'
 			}).prependTo('.state.suspense-grows');
+			if ($.inArray(game.config.policeRevealed[game.config.policeRevealed.length - 1], game.config.policeUnmarked) !== -1) {
+				$('<p></p>', {
+					text: 'Jack has discovered that a police token is not real.'
+				}).prependTo('.state.suspense-grows');
+			}
 
 			// Move the time of crime token back
 			var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
@@ -207,28 +223,30 @@ var game = {
 			$('.token-wretched').click(function(){
 				var mapid = $(this).data('mapid');
 				for (b = 0; b < map[mapid].adjacentNumber.length; b++) {
-					$('<span></span>', {
-						text: 'move here',
-						'data-mapidPrev': mapid,
-						'data-mapid': map[mapid].adjacentNumber[b],
-						class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
-						style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
-					}).click(function(){
-						var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
-						if (index !== -1) {
-							game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
-						}
-						$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
-						$('.token-move-wretched').remove();
-						movedWretched++;
-						if (movedWretched >= game.config.wretched) {
-							$('.suspense-grows .next-state').show().click(function(){
-								$('.token-wretched').remove();
-								game.config.state = 4;
-								game.nextState();
-							});
-						}
-					}).appendTo('.map');
+					if ($.inArray(map[mapid].adjacentNumber[b], game.config.womenMarked) == -1) {
+						$('<span></span>', {
+							text: 'move here',
+							'data-mapidPrev': mapid,
+							'data-mapid': map[mapid].adjacentNumber[b],
+							class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
+							style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
+						}).click(function(){
+							var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
+							if (index !== -1) {
+								game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
+							}
+							$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
+							$('.token-move-wretched').remove();
+							movedWretched++;
+							if (movedWretched >= game.config.wretched) {
+								$('.suspense-grows .next-state').show().click(function(){
+									$('.token-wretched').remove();
+									game.config.state = 4;
+									game.nextState();
+								});
+							}
+						}).appendTo('.map');
+					}
 				}
 				$('.token-wretched-' + mapid).remove();
 			});
@@ -240,7 +258,11 @@ var game = {
 				text: 'Jack has murdered at ' + map[game.config.murder[game.config.murder.length - 1]].number + '.'
 			}).prependTo('.alarm-whistles');
 
+			game.config.jack[game.config.murder.length - 1] = new Array();
+			game.config.jack[game.config.murder.length - 1].push(game.config.murder[game.config.murder.length - 1]);
+
 			// Calculate Jack's first move here
+			game.config.jack[game.config.murder.length - 1].push(game.moveJack());
 
 			// Move the time of crime token forward
 			var murderMove = game.config.murderMove[game.config.murderMove.length - 1] + 1;
@@ -268,6 +290,44 @@ var game = {
 				}
 			}
 		}
+	},
+	moveJack: function() {
+		var jackRoute = game.config.jack[game.config.murder.length - 1];
+		var jack = game.config.jack[game.config.murder.length - 1][game.config.jack[game.config.murder.length - 1].length - 1];
+		var adjacentNumber = map[jack].adjacentNumber;
+		var adjacent = new Array();
+		var baseX = map[game.config.base].position[0];
+		var baseY = map[game.config.base].position[1];
+
+		// Just choose the shortest distance to base for now
+		var shortestDistance;
+		var chosenPosition;
+		// Ends
+
+		for (a = 0; a < adjacentNumber.length; a++) { // For each position adjacent to Jack
+			var baseDistance = Math.hypot(Math.abs(map[adjacentNumber[a]].position[0] - baseX), Math.abs(map[adjacentNumber[a]].position[1] - baseY));
+			adjacent[a] = new Array(); // Create a lovely array of options listing pros and cons
+			adjacent[a].number = adjacentNumber[a];
+			adjacent[a].distance = baseDistance;
+
+			// Random number float between 0 & 10 (much more likely to be high)
+			// (Math.log((Math.random() * 22026) + 1) + 1) - 1;
+
+			// Just choose the shortest distance to base for now
+			if (a == 0) {
+				shortestDistance = baseDistance;
+				chosenPosition = a;
+			} else {
+				if (baseDistance < shortestDistance) {
+					shortestDistance = baseDistance;
+					chosenPosition = a;
+				}
+			}
+			// Ends
+
+		}
+
+		return adjacentNumber[chosenPosition];
 	}
 }
 
