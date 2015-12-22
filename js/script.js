@@ -10,6 +10,7 @@ var game = {
 	config: {
 		base: 152, /* Preprogrammed. TODO: Makke this selection random */
 		state: 0,
+		totalMoves: 20,
 		remainingMoves: 15,
 		lanterns: 3,
 		carriages: 3,
@@ -22,7 +23,8 @@ var game = {
 		policeMarked: new Array(),
 		policeUnmarked: new Array(),
 		policeRevealed: new Array(),
-		murder: new Array()
+		murder: new Array(),
+		murderMove: new Array()
 	},
 	nextState: function() {
 		$('.state').hide();
@@ -35,8 +37,7 @@ var game = {
 			$('<p></p>', {
 				text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
 			}).prependTo('.prepare-the-scene');
-		}
-		if (game.config.state == 1) { /* The targets are identified */
+		} else if (game.config.state == 1) { /* The targets are identified */
 
 			var murderLocations = new Array(); // Create an array of murder spots on the map
 			for (a = 0; a < map.length; a++) {
@@ -58,13 +59,12 @@ var game = {
 
 			game.config.state = 2;
 			game.nextState();
-		}
-		if (game.config.state == 2) { /* Patrolling the streets */
+		} else if (game.config.state == 2) { /* Patrolling the streets */
 			$('.patrolling-the-streets').show();
 			$('.patrolling-the-streets .next-state').hide();
 			$('<p></p>', {
-				text: 'The head of the investigation places' + game.config.police + 'police patrol tokens and ' + game.config.fakePolice + ' fake police tokens on the map.'
-			}).prependTo('.the-targets-are-identified');
+				text: 'The head of the investigation places ' + game.config.police + ' police patrol tokens and ' + game.config.fakePolice + ' fake police tokens on the map.'
+			}).prependTo('.state.patrolling-the-streets');
 			for (a = 0; a < map.length; a++) {
 				if (($.inArray(a, game.config.womenMarked) !== -1) || ($.inArray(a, game.config.womenUnmarked) !== -1)) {
 					$('<span></span>', {
@@ -125,37 +125,56 @@ var game = {
 					$('.patrolling-the-streets .next-state').show().click(function(){
 						$('.token-woman').remove();
 						$('.token-police').remove();
-						game.config.state = 3;
+						game.config.state = 4;
 						game.nextState();
 					});
 				} else {
 					$('.patrolling-the-streets .next-state').hide();
 				}
 			});
-		}
-		if (game.config.state == 3) { /* Blood on the streets */
+		} else if (game.config.state == 4) { /* Blood on the streets */
+
+			$('<p></p>', {
+				text: 'Jack chooses between killing or waiting.'
+			}).prependTo('state.blood-on-the-streets');
 			
-			/* Preprogrammed to reveal the policeman at 76. TODO: Makke this selection random */
-			if (game.config.policeRevealed == 0) {
-				var mapid = 76;
-				if ($.inArray(mapid, game.config.policeUnmarked)) {
-					game.config.policeRevealed.push(mapid);
-					game.config.state = 4;
+			if (game.config.totalMoves > game.config.remainingMoves) { // If Jack has enough moves to reveal a police token
+				/* Preprogrammed to reveal the policeman at 76. TODO: Makke this selection random */
+				if (game.config.policeRevealed == 0) {
+					var mapid = 76;
+					if ($.inArray(mapid, game.config.policeUnmarked)) {
+						game.config.policeRevealed.push(mapid);
+						game.config.remainingMoves++;
+						game.config.state = 5;
+						game.nextState();
+					}
+				} else {
+					var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
+					var mapid = game.config.womenMarked[randomIndex];
+					game.config.murder.push(mapid);
+					game.config.murderMove.push(game.config.totalMoves - game.config.remainingMoves);
+					game.config.remainingMoves--;
+					$('.token-police').remove();
+					game.config.state = 8;
 					game.nextState();
 				}
 			} else {
-				/* Preprogrammed to murder at 22. TODO: Makke this selection random */
-				var mapid = 22;
-				game.config.murder.push(mapid);
-				game.config.state = 5;
-				game.nextState();
+				// Forced to murder
 			}
 
-		}
-		if (game.config.state == 4) { /* Suspense grows */
+		} else if (game.config.state == 5) { /* Suspense grows */
 			var movedWretched = 0;
 			$('.suspense-grows').show();
 			$('.suspense-grows .next-state').hide();
+			$('<p></p>', {
+				text: 'The time of the crime token is moved, and each wreched pawn moves.'
+			}).prependTo('.state.suspense-grows');
+
+			// Move the time of crime token back
+			var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
+			$('.move-tracker p span').removeClass('active');
+			$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');
+
 			for (a = 0; a < map.length; a++) {
 				if ($.inArray(a, game.config.womenMarked) !== -1) {
 					$('<span></span>', {
@@ -202,11 +221,10 @@ var game = {
 						$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
 						$('.token-move-wretched').remove();
 						movedWretched++;
-						console.log(movedWretched); // Currently counts up to 4. TODO: Add all adjacentNumbers to map so that this works
 						if (movedWretched >= game.config.wretched) {
 							$('.suspense-grows .next-state').show().click(function(){
 								$('.token-wretched').remove();
-								game.config.state = 3;
+								game.config.state = 4;
 								game.nextState();
 							});
 						}
@@ -214,6 +232,41 @@ var game = {
 				}
 				$('.token-wretched-' + mapid).remove();
 			});
+		} else if (game.config.state == 8) { /* Alarm whistles */
+			$('.alarm-whistles').show();
+			$('.alarm-whistles .next-state').hide();
+
+			$('<p></p>', {
+				text: 'Jack has murdered at ' + map[game.config.murder[game.config.murder.length - 1]].number + '.'
+			}).prependTo('.alarm-whistles');
+
+			// Calculate Jack's first move here
+
+			// Move the time of crime token forward
+			var murderMove = game.config.murderMove[game.config.murderMove.length - 1] + 1;
+			$('.move-tracker p span:nth-child(' + murderMove + ')').addClass('murder');
+			var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
+			$('.move-tracker p span').removeClass('active');
+			$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');			
+
+			for (a = 0; a < map.length; a++) {
+				if ($.inArray(a, game.config.policeMarked) !== -1) {
+					$('<span></span>', {
+						text: 'real police',
+						'data-mapid': a,
+						class: 'label label-info revealed token token-police token-police-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
+				}
+				if ($.inArray(a, game.config.murder) !== -1) {
+					$('<span></span>', {
+						text: 'murder',
+						'data-mapid': a,
+						class: 'label label-info token token-murder token-murder-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
+				}
+			}
 		}
 	}
 }

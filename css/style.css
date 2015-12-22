@@ -77,6 +77,9 @@
 .map .token.revealed {
     background-color: #ff00ff;
 }
+.map .token-murder {
+    background-color: #d9534f;
+}
 .move-tracker {
 	position: absolute;
 	top: 672px;
