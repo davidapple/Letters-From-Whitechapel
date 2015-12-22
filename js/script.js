@@ -148,33 +148,30 @@ var game = {
 			}).prependTo('state.blood-on-the-streets');
 			
 			if (game.config.totalMoves > game.config.remainingMoves) { // If Jack has enough moves to reveal a police token
-				if (game.config.policeRevealed == 0) {
-					var randomIndex = Math.floor(Math.random() * (game.config.policeMarked.length + game.config.policeUnmarked.length)) + 1; // Randomly select a police (marked or unmarked)
-					if (randomIndex <= game.config.policeMarked.length) {
-						var mapid = game.config.policeMarked[randomIndex - 1];
-					} else {
-						var mapid = game.config.policeUnmarked[randomIndex - game.config.policeMarked.length - 1];
-					}
-					game.config.policeRevealed.push(mapid);
+				var randomIndex = Math.random(); // Jack chooses between killing or waiting based on the toss of a coin
+				if (randomIndex > 0.5) {
+					game.revealPolice();
 					game.config.remainingMoves++;
 					game.config.state = 5;
 					game.nextState();
 				} else {
-					var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
-					var mapid = game.config.womenMarked[randomIndex];
-					game.config.murder.push(mapid);
-					game.config.murderMove.push(game.config.totalMoves - game.config.remainingMoves);
+					game.murder();
+					console.log('Murder commited at random. Number ' + randomIndex);
 					game.config.remainingMoves--;
 					$('.token-police').remove();
 					game.config.state = 8;
 					game.nextState();
 				}
-			} else {
-				// Forced to murder
+			} else { // Forced to murder
+				game.murder();
+				console.log('Forced murder');
+				game.config.remainingMoves--;
+				$('.token-police').remove();
+				game.config.state = 8;
+				game.nextState();
 			}
 
 		} else if (game.config.state == 5) { /* Suspense grows */
-			var movedWretched = 0;
 			$('.suspense-grows').show();
 			$('.suspense-grows .next-state').hide();
 			$('<p></p>', {
@@ -185,6 +182,8 @@ var game = {
 					text: 'Jack has discovered that a police token is not real.'
 				}).prependTo('.state.suspense-grows');
 			}
+
+			var movedWretched = 0;
 
 			// Move the time of crime token back
 			var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
@@ -251,32 +250,30 @@ var game = {
 				$('.token-wretched-' + mapid).remove();
 			});
 		} else if (game.config.state == 8) { /* Alarm whistles */
-			$('.alarm-whistles').show();
-			$('.alarm-whistles .next-state').hide();
-
-			$('<p></p>', {
-				text: 'Jack has murdered at ' + map[game.config.murder[game.config.murder.length - 1]].number + '.'
-			}).prependTo('.alarm-whistles');
-
 			game.config.jack[game.config.murder.length - 1] = new Array();
 			game.config.jack[game.config.murder.length - 1].push(game.config.murder[game.config.murder.length - 1]);
-
-			// Calculate Jack's first move here
-			game.config.jack[game.config.murder.length - 1].push(game.moveJack());
-
-			// Move the time of crime token forward
-			var murderMove = game.config.murderMove[game.config.murderMove.length - 1] + 1;
+			game.config.jack[game.config.murder.length - 1].push(game.moveJack()); // Jack's first move
+			var murderMove = game.config.murderMove[game.config.murderMove.length - 1] + 1; // Move the time of crime token forward
 			$('.move-tracker p span:nth-child(' + murderMove + ')').addClass('murder');
 			var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
 			$('.move-tracker p span').removeClass('active');
-			$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');			
+			$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');
+			game.config.state = 10;
+			game.nextState();
+		} else if (game.config.state == 10) { /* Hunting the monster */
+			$('.hunting-the-monster').show();
+			$('.hunting-the-monster .next-state').hide();
+			$('<p></p>', {
+				text: 'Each policeman pawn moves.'
+			}).prependTo('.state.hunting-the-monster');
 
+			var movedPolice = 0;
 			for (a = 0; a < map.length; a++) {
 				if ($.inArray(a, game.config.policeMarked) !== -1) {
 					$('<span></span>', {
 						text: 'real police',
 						'data-mapid': a,
-						class: 'label label-info revealed token token-police token-police-' + a,
+						class: 'label label-info selectable revealed token token-police token-police-' + a,
 						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 					}).appendTo('.map');
 				}
@@ -289,7 +286,82 @@ var game = {
 					}).appendTo('.map');
 				}
 			}
+			$('.token-police').click(function(){
+				var mapid = $(this).data('mapid');
+				for (b = 0; b < map[mapid].adjacent.length; b++) {
+					if ($.inArray(map[mapid].adjacent[b], game.config.policeMarked) == -1) {
+						$('<span></span>', {
+							text: 'move here',
+							'data-mapidPrev': mapid,
+							'data-mapid': map[mapid].adjacent[b],
+							class: 'label label-info selectable token token-move-police token-police-' + map[mapid].adjacent[b],
+							style: 'left:' + map[map[mapid].adjacent[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacent[b]].position[1] + ';'
+						}).click(function(){
+							var index = game.config.policeMarked.indexOf(mapid); // Find previous map id in array
+							if (index !== -1) {
+								game.config.policeMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
+							}
+							$(this).removeClass('selectable token-move-police').addClass('token-police').text('real police').unbind('click');
+							$('.token-move-police').remove();
+							movedPolice++;
+							if (movedPolice >= game.config.policeMarked.length) {
+								$('.hunting-the-monster .next-state').show().click(function(){
+									$('.token-police').remove();
+									game.config.state = 11;
+									game.nextState();
+								});
+							}
+						}).appendTo('.map');
+					}
+				}
+				$('.token-police-' + mapid).remove();
+				$('<span></span>', {
+					text: 'don\'t move',
+					'data-mapidPrev': mapid,
+					'data-mapid': mapid,
+					class: 'label label-info selectable token token-move-police token-police-' + mapid,
+					style: 'left:' + map[mapid].position[0] + ';' + 'top:' + map[mapid].position[1] + ';'
+				}).click(function(){
+					var index = game.config.policeMarked.indexOf(mapid); // Find previous map id in array
+					if (index !== -1) {
+						game.config.policeMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
+					}
+					$(this).removeClass('selectable token-move-police').addClass('token-police').text('real police').unbind('click');
+					$('.token-move-police').remove();
+					movedPolice++;
+					if (movedPolice >= game.config.policeMarked.length) {
+						$('.hunting-the-monster .next-state').show().click(function(){
+							$('.token-police').remove();
+							game.config.state = 11;
+							game.nextState();
+						});
+					}
+				}).appendTo('.map');
+			});
+		} else if (game.config.state == 11) { /* Clues and suspicion */
+			var movedPolice = 0;
+			$('.clues-and-suspicion').show();
+			$('.clues-and-suspicion .next-state').hide();
+
+			$('<p></p>', {
+				text: 'Each policeman pawn either looks for clues or executes an arrest.'
+			}).prependTo('.clues-and-suspicion');
 		}
+	},
+	revealPolice: function() {
+		var randomIndex = Math.floor(Math.random() * (game.config.policeMarked.length + game.config.policeUnmarked.length)) + 1; // Randomly select a police (marked or unmarked)
+		if (randomIndex <= game.config.policeMarked.length) {
+			var mapid = game.config.policeMarked[randomIndex - 1];
+		} else {
+			var mapid = game.config.policeUnmarked[randomIndex - game.config.policeMarked.length - 1];
+		}
+		game.config.policeRevealed.push(mapid);
+	},
+	murder: function() {
+		var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
+		var mapid = game.config.womenMarked[randomIndex];
+		game.config.murder.push(mapid);
+		game.config.murderMove.push(game.config.totalMoves - game.config.remainingMoves);
 	},
 	moveJack: function() {
 		var jackRoute = game.config.jack[game.config.murder.length - 1];
@@ -350,6 +422,12 @@ var draw = {
 						$('<span></span>', {
 							class: 'label label-default location location-' + a + station,
 							text: 's',
+							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+						}).prependTo('.map');
+					} else {
+						$('<span></span>', {
+							class: 'label label-default location location-' + a,
+							text: a,
 							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 						}).prependTo('.map');
 					}

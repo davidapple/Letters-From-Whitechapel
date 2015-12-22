@@ -40,11 +40,18 @@
     position: absolute;
     margin-top: -8px;
     margin-left: -5px;
-    font-size: 9px;
+    padding: 2px;
+    font-size: 7px;
 }
 .map .location {
     background-color: #333333;
     font-size: 8px;
+}
+.map .label-info {
+    opacity: 0.6;
+}
+.map .label-info:hover {
+    opacity: 1;
 }
 .map .location-number {
     background-color: #ffffff;
@@ -94,4 +101,5 @@
 }
 .move-tracker .label.murder {
 	background-color: #d9534f;
+    color: #ffffff;
 }
