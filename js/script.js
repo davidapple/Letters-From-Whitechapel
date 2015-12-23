@@ -17,22 +17,26 @@ var game = {
 		wretched: 4,
 		police: 7,
 		fakePolice: 2,
-		jack: new Array(),
+		jack: [new Array()],
 		womenMarked: new Array(),
 		womenUnmarked: new Array(),
 		policeMarked: new Array(),
 		policeUnmarked: new Array(),
 		policeRevealed: new Array(),
-		murder: new Array(),
+		murder: [new Array()],
 		murderMove: new Array()
 	},
-	nextState: function() {
+	nextState: function(x) {
+		if (x) {
+			game.config.state = x;
+		}
 		$('.state').hide();
 		draw.updateTitle();
-		if (game.config.state == 0) { /* Prepare the scene */
+
+		switch(game.config.state) {
+		case 0: /* Prepare the scene */
 			$('.prepare-the-scene').show().children('.next-state').click(function(){
-				game.config.state = 1;
-				game.nextState();
+				game.nextState(1);
 			});
 			$('<p></p>', {
 				text: 'Jack chooses a base and collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
@@ -46,7 +50,8 @@ var game = {
 			}
 			game.config.base = numberedLocation[Math.floor(Math.random() * numberedLocation.length) + 1]; // Randomly select a base
 
-		} else if (game.config.state == 1) { /* The targets are identified */
+			break;
+		case 1: /* The targets are identified */
 
 			var murderLocations = new Array(); // Create an array of murder spots on the map
 			for (a = 0; a < map.length; a++) {
@@ -65,10 +70,10 @@ var game = {
 				game.config.womenUnmarked.push(murderLocations[randomIndex]); // Randomly select unmarked women
 				murderLocations.splice(randomIndex, 1); // Prevent possibility of choosing duplicate locations
 			}
+			game.nextState(2);
 
-			game.config.state = 2;
-			game.nextState();
-		} else if (game.config.state == 2) { /* Patrolling the streets */
+			break;
+		case 2: /* Patrolling the streets */
 			$('.patrolling-the-streets').show();
 			$('.patrolling-the-streets .next-state').hide();
 			$('<p></p>', {
@@ -134,44 +139,49 @@ var game = {
 					$('.patrolling-the-streets .next-state').show().click(function(){
 						$('.token-woman').remove();
 						$('.token-police').remove();
-						game.config.state = 4;
-						game.nextState();
+						game.nextState(4);
 					});
 				} else {
 					$('.patrolling-the-streets .next-state').hide();
 				}
 			});
-		} else if (game.config.state == 4) { /* Blood on the streets */
+
+			break;
+		case 4: /* Blood on the streets */
 
 			$('<p></p>', {
 				text: 'Jack chooses between killing or waiting.'
 			}).prependTo('state.blood-on-the-streets');
+
+			if (game.config.murder[game.config.murder.length - 1].length == game.config.jack[game.config.jack.length - 1].length && game.config.jack[game.config.jack.length - 1].length == 0) {
 			
-			if (game.config.totalMoves > game.config.remainingMoves) { // If Jack has enough moves to reveal a police token
-				var randomIndex = Math.random(); // Jack chooses between killing or waiting based on the toss of a coin
-				if (randomIndex > 0.5) {
-					game.revealPolice();
-					game.config.remainingMoves++;
-					game.config.state = 5;
-					game.nextState();
-				} else {
+				if (game.config.totalMoves > game.config.remainingMoves) { // If Jack has enough moves to reveal a police token
+					var randomIndex = Math.random(); // Jack chooses between killing or waiting based on the toss of a coin
+					if (randomIndex > 0.5) {
+						game.revealPolice();
+						game.config.remainingMoves++;
+						game.nextState(5);
+					} else {
+						game.murder();
+						console.log('Murder commited at random. Number ' + randomIndex);
+						game.config.remainingMoves--;
+						$('.token-police').remove();
+						game.nextState(8);
+					}
+				} else { // Forced to murder
 					game.murder();
-					console.log('Murder commited at random. Number ' + randomIndex);
+					console.log('Forced murder');
 					game.config.remainingMoves--;
 					$('.token-police').remove();
-					game.config.state = 8;
-					game.nextState();
+					game.nextState(8);
 				}
-			} else { // Forced to murder
-				game.murder();
-				console.log('Forced murder');
-				game.config.remainingMoves--;
-				$('.token-police').remove();
-				game.config.state = 8;
-				game.nextState();
+
+			} else {
+				console.log('Warning: Multiple "Blood on the Streets" attempted.');
 			}
 
-		} else if (game.config.state == 5) { /* Suspense grows */
+			break;
+		case 5: /* Suspense grows */
 			$('.suspense-grows').show();
 			$('.suspense-grows .next-state').hide();
 			$('<p></p>', {
@@ -240,8 +250,7 @@ var game = {
 							if (movedWretched >= game.config.wretched) {
 								$('.suspense-grows .next-state').show().click(function(){
 									$('.token-wretched').remove();
-									game.config.state = 4;
-									game.nextState();
+									game.nextState(4);
 								});
 							}
 						}).appendTo('.map');
@@ -249,18 +258,21 @@ var game = {
 				}
 				$('.token-wretched-' + mapid).remove();
 			});
-		} else if (game.config.state == 8) { /* Alarm whistles */
-			game.config.jack[game.config.murder.length - 1] = new Array();
-			game.config.jack[game.config.murder.length - 1].push(game.config.murder[game.config.murder.length - 1]);
-			game.config.jack[game.config.murder.length - 1].push(game.moveJack()); // Jack's first move
+
+			break;
+		case 8: /* Alarm whistles */
+			game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1] = new Array();
+			game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1].push(game.config.murder[game.config.murder.length - 1][game.config.murder.length - 1]);
+			game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1].push(game.moveJack()); // Jack's first move
 			var murderMove = game.config.murderMove[game.config.murderMove.length - 1] + 1; // Move the time of crime token forward
 			$('.move-tracker p span:nth-child(' + murderMove + ')').addClass('murder');
 			var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
 			$('.move-tracker p span').removeClass('active');
 			$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');
-			game.config.state = 10;
-			game.nextState();
-		} else if (game.config.state == 10) { /* Hunting the monster */
+			game.nextState(10);
+
+			break;
+		case 10: /* Hunting the monster */
 			$('.hunting-the-monster').show();
 			$('.hunting-the-monster .next-state').hide();
 			$('<p></p>', {
@@ -277,7 +289,7 @@ var game = {
 						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 					}).appendTo('.map');
 				}
-				if ($.inArray(a, game.config.murder) !== -1) {
+				if ($.inArray(a, game.config.murder[game.config.murder.length - 1]) !== -1) {
 					$('<span></span>', {
 						text: 'murder',
 						'data-mapid': a,
@@ -288,6 +300,13 @@ var game = {
 			}
 			$('.token-police').click(function(){
 				var mapid = $(this).data('mapid');
+
+				// TODO: Develop this to show all possible police movements
+				// 1. Create an array of short routes (that don't retrace)
+				// 2. Remove the numbered positions
+				// 3. Truncate them to 2 positions
+				// 4. Merge all routes and delete duplicates
+
 				for (b = 0; b < map[mapid].adjacent.length; b++) {
 					if ($.inArray(map[mapid].adjacent[b], game.config.policeMarked) == -1) {
 						$('<span></span>', {
@@ -307,8 +326,7 @@ var game = {
 							if (movedPolice >= game.config.policeMarked.length) {
 								$('.hunting-the-monster .next-state').show().click(function(){
 									$('.token-police').remove();
-									game.config.state = 11;
-									game.nextState();
+									game.nextState(11);
 								});
 							}
 						}).appendTo('.map');
@@ -332,13 +350,14 @@ var game = {
 					if (movedPolice >= game.config.policeMarked.length) {
 						$('.hunting-the-monster .next-state').show().click(function(){
 							$('.token-police').remove();
-							game.config.state = 11;
-							game.nextState();
+							game.nextState(11);
 						});
 					}
 				}).appendTo('.map');
 			});
-		} else if (game.config.state == 11) { /* Clues and suspicion */
+
+			break;
+		case 11: /* Clues and suspicion */
 			var movedPolice = 0;
 			$('.clues-and-suspicion').show();
 			$('.clues-and-suspicion .next-state').hide();
@@ -349,6 +368,7 @@ var game = {
 		}
 	},
 	revealPolice: function() {
+		// TODO: Prevent revealing the same police multiple times
 		var randomIndex = Math.floor(Math.random() * (game.config.policeMarked.length + game.config.policeUnmarked.length)) + 1; // Randomly select a police (marked or unmarked)
 		if (randomIndex <= game.config.policeMarked.length) {
 			var mapid = game.config.policeMarked[randomIndex - 1];
@@ -360,12 +380,12 @@ var game = {
 	murder: function() {
 		var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
 		var mapid = game.config.womenMarked[randomIndex];
-		game.config.murder.push(mapid);
+		game.config.murder[game.config.murder.length - 1].push(mapid);
 		game.config.murderMove.push(game.config.totalMoves - game.config.remainingMoves);
 	},
 	moveJack: function() {
-		var jackRoute = game.config.jack[game.config.murder.length - 1];
-		var jack = game.config.jack[game.config.murder.length - 1][game.config.jack[game.config.murder.length - 1].length - 1];
+		var jackRoute = game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1];
+		var jack = game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1][game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1].length - 1];
 		var adjacentNumber = map[jack].adjacentNumber;
 		var adjacent = new Array();
 		var baseX = map[game.config.base].position[0];
