@@ -42,33 +42,22 @@ var game = {
 				text: 'Jack chooses a base and collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
 			}).prependTo('.prepare-the-scene');
 
-			var numberedLocation = new Array();
-			for (a = 1; a < map.length; a++) {
-				if (map[a].number) {
-					numberedLocation.push(a);
-				}
-			}
-			game.config.base = numberedLocation[Math.floor(Math.random() * numberedLocation.length) + 1]; // Randomly select a base
+			var mapNumbers = game.mapKey('number');
+			game.config.base = mapNumbers[ game.randomInt(1, mapNumbers.length) ]; // Randomly select a base
 
 			break;
 		case 1: /* The targets are identified */
 
-			var murderLocations = new Array(); // Create an array of murder spots on the map
-			for (a = 0; a < map.length; a++) {
-				if (map[a].murder) {
-					murderLocations.push(a);
-				}
-			}
-
+			var mapMurders = game.mapKey('murder');
 			while (game.config.womenMarked.length < game.config.wretched) { 
-				var randomIndex = Math.floor(Math.random() * murderLocations.length);
-				game.config.womenMarked.push(murderLocations[randomIndex]); // Randomly select wreched
-				murderLocations.splice(randomIndex, 1); // Prevent possibility of choosing duplicate locations
+				var index = game.randomInt(0, mapMurders.length);
+				game.config.womenMarked.push(mapMurders[index]); // Randomly select wreched
+				mapMurders.splice(index, 1); // Prevent possibility of choosing duplicate locations
 			}
 			while (game.config.womenUnmarked.length < (game.config.women - game.config.wretched)) {
-				var randomIndex = Math.floor(Math.random() * murderLocations.length);
-				game.config.womenUnmarked.push(murderLocations[randomIndex]); // Randomly select unmarked women
-				murderLocations.splice(randomIndex, 1); // Prevent possibility of choosing duplicate locations
+				var index = game.randomInt(0, mapMurders.length);
+				game.config.womenUnmarked.push(mapMurders[index]); // Randomly select unmarked women
+				mapMurders.splice(index, 1); // Prevent possibility of choosing duplicate locations
 			}
 			game.nextState(2);
 
@@ -233,27 +222,29 @@ var game = {
 				var mapid = $(this).data('mapid');
 				for (b = 0; b < map[mapid].adjacentNumber.length; b++) {
 					if ($.inArray(map[mapid].adjacentNumber[b], game.config.womenMarked) == -1) {
-						$('<span></span>', {
-							text: 'move here',
-							'data-mapidPrev': mapid,
-							'data-mapid': map[mapid].adjacentNumber[b],
-							class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
-							style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
-						}).click(function(){
-							var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
-							if (index !== -1) {
-								game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
-							}
-							$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
-							$('.token-move-wretched').remove();
-							movedWretched++;
-							if (movedWretched >= game.config.wretched) {
-								$('.suspense-grows .next-state').show().click(function(){
-									$('.token-wretched').remove();
-									game.nextState(4);
-								});
-							}
-						}).appendTo('.map');
+						if (true) { // TODO: Wretched tokens cannot move next to police tokens, cannot move past police tokens or on crime scene markers
+							$('<span></span>', {
+								text: 'move here',
+								'data-mapidPrev': mapid,
+								'data-mapid': map[mapid].adjacentNumber[b],
+								class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
+								style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
+							}).click(function(){
+								var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
+								if (index !== -1) {
+									game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
+								}
+								$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
+								$('.token-move-wretched').remove();
+								movedWretched++;
+								if (movedWretched >= game.config.wretched) {
+									$('.suspense-grows .next-state').show().click(function(){
+										$('.token-wretched').remove();
+										game.nextState(4);
+									});
+								}
+							}).appendTo('.map');
+						}
 					}
 				}
 				$('.token-wretched-' + mapid).remove();
@@ -301,20 +292,37 @@ var game = {
 			$('.token-police').click(function(){
 				var mapid = $(this).data('mapid');
 
-				// TODO: Develop this to show all possible police movements
-				// 1. Create an array of short routes (that don't retrace)
-				// 2. Remove the numbered positions
-				// 3. Truncate them to 2 positions
-				// 4. Merge all routes and delete duplicates
+				// Show all possible police movements
+				var addNonNumber = function(array, id) {
+					if (!map[id].number) {
+						array.push(id);
+						return array;
+					} else {
+						return _.union(withoutNumbers(map[id].adjacent), array);
+					}
+				}
+				var withoutNumbers = function(current) {
+					return _.reduce(current, function(memo, item) {
+						return addNonNumber(memo, item);
+					}, []);
+				}
+				var twoSteps = function(current) {
+					return _.union(_.flatten(_.map(withoutNumbers(current), function(a, i) {
+							return withoutNumbers(map[a].adjacent);
+						})
+					))
+				}
+				
+				var twoSteps = twoSteps(map[mapid].adjacent);
 
-				for (b = 0; b < map[mapid].adjacent.length; b++) {
-					if ($.inArray(map[mapid].adjacent[b], game.config.policeMarked) == -1) {
+				for (b = 0; b < twoSteps.length; b++) {
+					if ($.inArray(twoSteps[b], game.config.policeMarked) == -1) {
 						$('<span></span>', {
 							text: 'move here',
 							'data-mapidPrev': mapid,
-							'data-mapid': map[mapid].adjacent[b],
-							class: 'label label-info selectable token token-move-police token-police-' + map[mapid].adjacent[b],
-							style: 'left:' + map[map[mapid].adjacent[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacent[b]].position[1] + ';'
+							'data-mapid': twoSteps[b],
+							class: 'label label-info selectable token token-move-police token-police-' + twoSteps[b],
+							style: 'left:' + map[twoSteps[b]].position[0] + ';' + 'top:' + map[twoSteps[b]].position[1] + ';'
 						}).click(function(){
 							var index = game.config.policeMarked.indexOf(mapid); // Find previous map id in array
 							if (index !== -1) {
@@ -365,7 +373,41 @@ var game = {
 			$('<p></p>', {
 				text: 'Each policeman pawn either looks for clues or executes an arrest.'
 			}).prependTo('.clues-and-suspicion');
+
+			var completePolice = 0;
+			for (a = 0; a < map.length; a++) {
+				if ($.inArray(a, game.config.policeMarked) !== -1) {
+					$('<span></span>', {
+						text: 'real police',
+						'data-mapid': a,
+						class: 'label label-info selectable revealed token token-police token-police-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
+				}
+				if ($.inArray(a, game.config.murder[game.config.murder.length - 1]) !== -1) {
+					$('<span></span>', {
+						text: 'murder',
+						'data-mapid': a,
+						class: 'label label-info token token-murder token-murder-' + a,
+						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+					}).appendTo('.map');
+				}
+			}
 		}
+	},
+	mapKey: function (key) {
+		// Returns an array of ids that have a key,
+		// for example game.mapKey('station') = [33, 56, 76, 190, 210, 312, 385]
+		array = new Array();
+		_.map(map, function(item, index) {
+			if (_.has(item, key)) {
+				array.push(index);
+			}
+		});
+		return array;
+	},
+	randomInt: function (lowest, highest) {
+		return Math.floor(Math.random() * highest) + lowest;
 	},
 	revealPolice: function() {
 		// TODO: Prevent revealing the same police multiple times
