@@ -234,29 +234,43 @@ var game = {
 		}
 		$('.token-wretched').click(function(){
 			var mapid = $(this).data('mapid');
+
+			// Cannot move wretched adjacent to a police token
+			var police = _.union(game.config.policeMarked, game.config.policeUnmarked);
+			var illegalMoves = _.map(police, function(num, key) {
+				// But revealed police that are unmarked are fine
+				if (!(_.contains(_.intersection(game.config.policeRevealed, game.config.policeUnmarked), num))) {
+					return map[num].adjacent;
+				}
+			});
+			// Also cannot move wretched on top of another wretched
+			illegalMoves.push(game.config.womenMarked);
+
+			// TODO: Wretched tokens cannot move past police tokens or on crime scene markers
+
+			illegalMoves = _.flatten(illegalMoves);
+
 			for (b = 0; b < map[mapid].adjacentNumber.length; b++) {
-				if ($.inArray(map[mapid].adjacentNumber[b], game.config.womenMarked) == -1) {
-					if (true) { // TODO: Wretched tokens cannot move next to police tokens, cannot move past police tokens or on crime scene markers
-						$('<span></span>', {
-							text: 'move here',
-							'data-mapidPrev': mapid,
-							'data-mapid': map[mapid].adjacentNumber[b],
-							class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
-							style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
-						}).click(function(){
-							var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
-							if (index !== -1) {
-								game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
-							}
-							$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
-							$('.token-move-wretched').remove();
-							movedWretched++;
-							if (movedWretched >= game.config.wretched) {
-								$('.token-wretched').remove();
-								game.nextState(4);
-							}
-						}).appendTo('.map');
-					}
+				if ($.inArray(map[mapid].adjacentNumber[b], illegalMoves) == -1) {
+					$('<span></span>', {
+						text: 'move here',
+						'data-mapidPrev': mapid,
+						'data-mapid': map[mapid].adjacentNumber[b],
+						class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
+						style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
+					}).click(function(){
+						var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
+						if (index !== -1) {
+							game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
+						}
+						$(this).removeClass('selectable token-move-wretched').addClass('token-wretched').text('wretched').unbind('click');
+						$('.token-move-wretched').remove();
+						movedWretched++;
+						if (movedWretched >= game.config.wretched) {
+							$('.token-wretched').remove();
+							game.nextState(4);
+						}
+					}).appendTo('.map');
 				}
 			}
 			$('.token-wretched-' + mapid).remove();
@@ -416,8 +430,23 @@ var game = {
 		});
 		return array;
 	},
+	randomFloat: function (highest) {
+		return Math.random() * highest;
+	},
+	randomLog: function () {
+		var randomLog = Math.log(Math.random() * 22026.4657948066);
+		if (randomLog < 0) { // Prevent the very rare occassions when this is negative
+			randomLog = 0;
+		}
+		return randomLog; // Returns a float between 0 and 9.9999999999
+	},
 	randomInt: function (lowest, highest) {
-		return Math.floor(Math.random() * highest) + lowest;
+		return Math.floor(game.randomFloat(highest)) + lowest;
+	},
+	randomSafe: function (percentage) { // For example game.randomSafe(0.5) would be 50% safe
+		var randomFloat = game.randomFloat(10) * (1 - percentage);
+		var randomLog = game.randomLog() * percentage;
+		return randomFloat + randomLog;
 	},
 	revealPolice: function() {
 		var randomIndex = Math.floor(Math.random() * (game.config.policeMarked.length + game.config.policeUnmarked.length)) + 1; // Randomly select a police (marked or unmarked)
