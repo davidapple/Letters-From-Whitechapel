@@ -70,7 +70,9 @@ var game = {
 			text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carriages and ' + game.config.lanterns + ' lanterns).'
 		}).prependTo('.preparing-the-scene');
 		jack[jack.length] = { // New night
-			route: new Array()
+			route: new Array(),
+			murder: new Array(),
+			murderMove: new Array()
 		}
 	},
 	theTargetsAreIdentified: function () {
@@ -278,8 +280,7 @@ var game = {
 	},
 	alarmWhistles: function () {
 		jack[jack.length - 1].route.push(game.moveJack()); // Jack's first move
-		jack[jack.length - 1].murderMove = game.config.totalMoves - game.config.remainingMoves;
-		$('.move-tracker p span:nth-child(' + jack[jack.length - 1].murderMove + ')').addClass('murder');
+		$('.move-tracker p span:nth-child(' + _.last(jack).murderMove[_.last(jack).murderMove.length - 1] + ')').addClass('murder');
 		var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
 		$('.move-tracker p span').removeClass('active');
 		$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');
@@ -302,7 +303,7 @@ var game = {
 					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 				}).appendTo('.map');
 			}
-			if (a == jack[jack.length - 1].murder) {
+			if (a == _.last(jack).murder[_.last(jack).murder.length - 1]) {
 				$('<span></span>', {
 					text: 'murder',
 					'data-mapid': a,
@@ -399,13 +400,19 @@ var game = {
 		for (a = 0; a < map.length; a++) {
 			if ($.inArray(a, game.config.policeMarked) !== -1) {
 				$('<span></span>', {
-					text: 'real police',
+					text: 'search',
 					'data-mapid': a,
-					class: 'label label-info selectable revealed token token-police token-police-' + a,
+					class: 'label label-info selectable token token-search token-search-' + a,
+					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
+				}).appendTo('.map');
+				$('<span></span>', {
+					text: 'arrest',
+					'data-mapid': a,
+					class: 'label label-info selectable token token-arrest-adjacent token-arrest-adjacent-' + a,
 					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 				}).appendTo('.map');
 			}
-			if ($.inArray(a, game.config.murder[game.config.murder.length - 1]) !== -1) {
+			if ($.inArray(a, _.last(jack).murder[_.last(jack).murder.length - 1]) !== -1) {
 				$('<span></span>', {
 					text: 'murder',
 					'data-mapid': a,
@@ -414,6 +421,34 @@ var game = {
 				}).appendTo('.map');
 			}
 		}
+		$('.token-arrest-adjacent').click(function(){
+			var mapid = $(this).data('mapid');
+			for (b = 0; b < map[mapid].adjacent.length; b++) {
+				if (_.has(map[map[mapid].adjacent[b]], 'number')) {
+					$('<span></span>', {
+						text: 'arrest',
+						'data-mapid': map[mapid].adjacent[b],
+						class: 'label label-info selectable token token-arrest token-arrest-' + a,
+						style: 'left:' + map[map[mapid].adjacent[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacent[b]].position[1] + ';'
+					}).click(function(){
+						var mapid = $(this).data('mapid');
+						if (mapid == _.last(jack).route[_.last(jack).route.length - 1]) {
+							console.log('Jack has been arrested.');
+						} else {
+							console.log('Jack has not been arrested.');
+						}
+						$('.token-arrest').remove();
+						movedPolice++;
+						if (movedPolice >= (game.config.police - game.config.fakePolice)) {
+							game.config.remainingMoves--;
+							game.nextState(8);
+						}
+					}).appendTo('.map');
+				}
+			}
+			$(this).prev().remove();
+			$(this).remove();
+		});
 	},
 	selectBase: function () {
 		var mapNumbers = game.mapKey('number');
@@ -461,8 +496,8 @@ var game = {
 		var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
 		var mapid = game.config.womenMarked[randomIndex];
 		jack[jack.length - 1].route.push(mapid); // Put Jack at the scene of the crime
-		jack[jack.length - 1].murder = mapid;
-		jack[jack.length - 1].murderMove = game.config.totalMoves - game.config.remainingMoves;
+		jack[jack.length - 1].murder.push(mapid);
+		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
 	},
 	moveJack: function() {
 		var adjacentNumber = map[jack[jack.length - 1].route[jack[jack.length - 1].route.length - 1]].adjacentNumber;

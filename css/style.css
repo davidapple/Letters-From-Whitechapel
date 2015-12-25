@@ -90,6 +90,9 @@
 .map .token.unmarked {
     margin-top: 13px;
 }
+.map .token-arrest-adjacent {
+    margin-top: 13px;
+}
 .map .token.selected {
     background-color: #eeeeee;
 }
