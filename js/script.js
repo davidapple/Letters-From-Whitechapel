@@ -4,6 +4,11 @@
  * @davidappleremix
  */
 
+/* Jack
+   ---- */
+
+var jack = new Array();
+
 /* Game
    ---- */
 var game = {
@@ -17,14 +22,11 @@ var game = {
 		wretched: 4,
 		police: 7,
 		fakePolice: 2,
-		jack: [new Array()],
 		womenMarked: new Array(),
 		womenUnmarked: new Array(),
 		policeMarked: new Array(),
 		policeUnmarked: new Array(),
 		policeRevealed: new Array(),
-		murder: [new Array()],
-		murderMove: new Array()
 	},
 	nextState: function(x) {
 		if (x) {
@@ -32,7 +34,6 @@ var game = {
 		}
 		$('.state').hide();
 		draw.updateTitle();
-
 		switch(game.config.state) {
 			case 0:
 				game.preparingTheScene();
@@ -56,20 +57,21 @@ var game = {
 				game.huntingTheMonster();
 			break;
 			case 11:
-				cluesAndSuspicion();
+				game.cluesAndSuspicion();
 			break;
 		}
 	},
 	preparingTheScene: function () {
+		// TODO: Update carrages and lanterns
 		$('.preparing-the-scene').show().children('.next-state').click(function(){
 			game.nextState(1);
 		});
 		$('<p></p>', {
-			text: 'Jack chooses a base and collects the special movement tokens (' + game.config.carriages + ' carrages and ' + game.config.lanterns + ' lanterns).'
+			text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carriages and ' + game.config.lanterns + ' lanterns).'
 		}).prependTo('.preparing-the-scene');
-
-		var mapNumbers = game.mapKey('number');
-		game.config.base = mapNumbers[ game.randomInt(1, mapNumbers.length) ]; // Randomly select a base
+		jack[jack.length] = { // New night
+			route: new Array()
+		}
 	},
 	theTargetsAreIdentified: function () {
 		var mapMurders = game.mapKey('murder');
@@ -163,39 +165,31 @@ var game = {
 			text: 'Jack chooses between killing or waiting.'
 		}).prependTo('state.blood-on-the-streets');
 
-		if (game.config.murder[game.config.murder.length - 1].length == game.config.jack[game.config.jack.length - 1].length && game.config.jack[game.config.jack.length - 1].length == 0) {
-		
+		if (jack[jack.length - 1].route.length == 0) {
 			if (game.config.totalMoves > game.config.remainingMoves) { // If Jack has enough moves to reveal a police token
 				var randomIndex = Math.random(); // Jack chooses between killing or waiting based on the toss of a coin
 				if (randomIndex > 0.5) {
-					game.revealPolice();
 					game.config.remainingMoves++;
+					game.revealPolice();
 					game.nextState(5);
 				} else {
 					game.murder();
-					console.log('Murder commited at random. Number ' + randomIndex);
 					game.config.remainingMoves--;
 					$('.token-police').remove();
 					game.nextState(8);
 				}
 			} else { // Forced to murder
 				game.murder();
-				console.log('Forced murder');
 				game.config.remainingMoves--;
 				$('.token-police').remove();
 				game.nextState(8);
 			}
-
 		} else {
-			console.log('Warning: Multiple "Blood on the Streets" attempted.');
+			console.log('Error: Multiple murders attempted.');
 		}
 	},
 	suspenseGrows: function() {
 		$('.suspense-grows').show();
-		$('.suspense-grows .next-state').hide();
-		$('<p></p>', {
-			text: 'The time of the crime token is moved, and each wreched pawn moves.'
-		}).prependTo('.state.suspense-grows');
 		if ($.inArray(game.config.policeRevealed[game.config.policeRevealed.length - 1], game.config.policeUnmarked) !== -1) {
 			$('<p></p>', {
 				text: 'Jack has discovered that a police token is not real.'
@@ -258,10 +252,8 @@ var game = {
 							$('.token-move-wretched').remove();
 							movedWretched++;
 							if (movedWretched >= game.config.wretched) {
-								$('.suspense-grows .next-state').show().click(function(){
-									$('.token-wretched').remove();
-									game.nextState(4);
-								});
+								$('.token-wretched').remove();
+								game.nextState(4);
 							}
 						}).appendTo('.map');
 					}
@@ -271,11 +263,9 @@ var game = {
 		});
 	},
 	alarmWhistles: function () {
-		game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1] = new Array();
-		game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1].push(game.config.murder[game.config.murder.length - 1][game.config.murder.length - 1]);
-		game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1].push(game.moveJack()); // Jack's first move
-		var murderMove = game.config.murderMove[game.config.murderMove.length - 1] + 1; // Move the time of crime token forward
-		$('.move-tracker p span:nth-child(' + murderMove + ')').addClass('murder');
+		jack[jack.length - 1].route.push(game.moveJack()); // Jack's first move
+		jack[jack.length - 1].murderMove = game.config.totalMoves - game.config.remainingMoves;
+		$('.move-tracker p span:nth-child(' + jack[jack.length - 1].murderMove + ')').addClass('murder');
 		var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
 		$('.move-tracker p span').removeClass('active');
 		$('.move-tracker p span:nth-child(' + availableMoves + ')').addClass('active');
@@ -298,7 +288,7 @@ var game = {
 					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
 				}).appendTo('.map');
 			}
-			if ($.inArray(a, game.config.murder[game.config.murder.length - 1]) !== -1) {
+			if (a == jack[jack.length - 1].murder) {
 				$('<span></span>', {
 					text: 'murder',
 					'data-mapid': a,
@@ -411,6 +401,10 @@ var game = {
 			}
 		}
 	},
+	selectBase: function () {
+		var mapNumbers = game.mapKey('number');
+		game.config.base = mapNumbers[ game.randomInt(1, mapNumbers.length) ];
+	},
 	mapKey: function (key) {
 		// Returns an array of ids that have a key,
 		// for example game.mapKey('station') = [33, 56, 76, 190, 210, 312, 385]
@@ -426,7 +420,6 @@ var game = {
 		return Math.floor(Math.random() * highest) + lowest;
 	},
 	revealPolice: function() {
-		// TODO: Prevent revealing the same police multiple times
 		var randomIndex = Math.floor(Math.random() * (game.config.policeMarked.length + game.config.policeUnmarked.length)) + 1; // Randomly select a police (marked or unmarked)
 		if (randomIndex <= game.config.policeMarked.length) {
 			var mapid = game.config.policeMarked[randomIndex - 1];
@@ -438,13 +431,12 @@ var game = {
 	murder: function() {
 		var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
 		var mapid = game.config.womenMarked[randomIndex];
-		game.config.murder[game.config.murder.length - 1].push(mapid);
-		game.config.murderMove.push(game.config.totalMoves - game.config.remainingMoves);
+		jack[jack.length - 1].route.push(mapid); // Put Jack at the scene of the crime
+		jack[jack.length - 1].murder = mapid;
+		jack[jack.length - 1].murderMove = game.config.totalMoves - game.config.remainingMoves;
 	},
 	moveJack: function() {
-		var jackRoute = game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1];
-		var jack = game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1][game.config.jack[game.config.murder[game.config.murder.length - 1].length - 1].length - 1];
-		var adjacentNumber = map[jack].adjacentNumber;
+		var adjacentNumber = map[jack[jack.length - 1].route[jack[jack.length - 1].route.length - 1]].adjacentNumber;
 		var adjacent = new Array();
 		var baseX = map[game.config.base].position[0];
 		var baseY = map[game.config.base].position[1];
@@ -525,4 +517,5 @@ var draw = {
    ----- */
 draw.map();
 draw.updateTitle();
+game.selectBase();
 game.nextState();
