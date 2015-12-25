@@ -76,7 +76,7 @@ var game = {
 		}
 	},
 	theTargetsAreIdentified: function () {
-		var mapMurders = game.mapKey('murder');
+		var mapMurders = map.key('murder');
 		while (game.config.womenMarked.length < game.config.wretched) { 
 			var index = game.randomInt(0, mapMurders.length);
 			game.config.womenMarked.push(mapMurders[index]); // Randomly select wreched
@@ -279,7 +279,7 @@ var game = {
 		});
 	},
 	alarmWhistles: function () {
-		jack[jack.length - 1].route.push(game.moveJack()); // Jack's first move
+		jack[jack.length - 1].route.push(jack.move()); // Jack's first move
 		$('.move-tracker p span:nth-child(' + _.last(jack).murderMove[_.last(jack).murderMove.length - 1] + ')').addClass('murder');
 		var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
 		$('.move-tracker p span').removeClass('active');
@@ -440,6 +440,7 @@ var game = {
 						$('.token-arrest').remove();
 						movedPolice++;
 						if (movedPolice >= (game.config.police - game.config.fakePolice)) {
+							$('token').remove();
 							game.config.remainingMoves--;
 							game.nextState(8);
 						}
@@ -451,19 +452,8 @@ var game = {
 		});
 	},
 	selectBase: function () {
-		var mapNumbers = game.mapKey('number');
+		var mapNumbers = map.key('number');
 		game.config.base = mapNumbers[ game.randomInt(1, mapNumbers.length) ];
-	},
-	mapKey: function (key) {
-		// Returns an array of ids that have a key,
-		// for example game.mapKey('station') = [33, 56, 76, 190, 210, 312, 385]
-		array = new Array();
-		_.map(map, function(item, index) {
-			if (_.has(item, key)) {
-				array.push(index);
-			}
-		});
-		return array;
 	},
 	randomFloat: function (highest) {
 		return Math.random() * highest;
@@ -498,43 +488,39 @@ var game = {
 		jack[jack.length - 1].route.push(mapid); // Put Jack at the scene of the crime
 		jack[jack.length - 1].murder.push(mapid);
 		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
-	},
-	moveJack: function() {
-		var adjacentNumber = map[jack[jack.length - 1].route[jack[jack.length - 1].route.length - 1]].adjacentNumber;
-		var adjacent = new Array();
-		var baseX = map[game.config.base].position[0];
-		var baseY = map[game.config.base].position[1];
+	}
+}
+
+jack.move = function () {
+	var adjacentNumber = map[jack[jack.length - 1].route[jack[jack.length - 1].route.length - 1]].adjacentNumber;
+	var adjacent = new Array();
+	var baseX = map[game.config.base].position[0];
+	var baseY = map[game.config.base].position[1];
+
+	// TODO: If it's the first move, move to a position where arrest is impossible.
+
+	// Just choose the shortest distance to base for now
+	var shortestDistance;
+	var chosenPosition;
+
+	for (a = 0; a < adjacentNumber.length; a++) { // For each position adjacent to Jack
+		var baseDistance = Math.hypot(Math.abs(map[adjacentNumber[a]].position[0] - baseX), Math.abs(map[adjacentNumber[a]].position[1] - baseY));
+		adjacent[a] = new Array(); // Create a lovely array of options listing pros and cons
+		adjacent[a].number = adjacentNumber[a];
+		adjacent[a].distance = baseDistance;
 
 		// Just choose the shortest distance to base for now
-		var shortestDistance;
-		var chosenPosition;
-		// Ends
-
-		for (a = 0; a < adjacentNumber.length; a++) { // For each position adjacent to Jack
-			var baseDistance = Math.hypot(Math.abs(map[adjacentNumber[a]].position[0] - baseX), Math.abs(map[adjacentNumber[a]].position[1] - baseY));
-			adjacent[a] = new Array(); // Create a lovely array of options listing pros and cons
-			adjacent[a].number = adjacentNumber[a];
-			adjacent[a].distance = baseDistance;
-
-			// Random number float between 0 & 10 (much more likely to be high)
-			// (Math.log((Math.random() * 22026) + 1) + 1) - 1;
-
-			// Just choose the shortest distance to base for now
-			if (a == 0) {
+		if (a == 0) {
+			shortestDistance = baseDistance;
+			chosenPosition = a;
+		} else {
+			if (baseDistance < shortestDistance) {
 				shortestDistance = baseDistance;
 				chosenPosition = a;
-			} else {
-				if (baseDistance < shortestDistance) {
-					shortestDistance = baseDistance;
-					chosenPosition = a;
-				}
 			}
-			// Ends
-
 		}
-
-		return adjacentNumber[chosenPosition];
 	}
+	return adjacentNumber[chosenPosition];
 }
 
 /* Draw

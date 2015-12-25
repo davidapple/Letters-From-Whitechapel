@@ -1293,7 +1293,19 @@ map[428].adjacent = [245, 241];
 map[428].number = 188;
 map[428].adjacentNumber = [243, 265, 248, 238, 239];
 
-function debugMap() {
+map.key = function (key) {
+	// Returns an array of ids that have a key,
+	// for example game.mapKey('station') = [33, 56, 76, 190, 210, 312, 385]
+	array = new Array();
+	_.map(map, function(item, index) {
+		if (_.has(item, key)) {
+			array.push(index);
+		}
+	});
+	return array;
+}
+
+map.debug = function () {
 	var errorCount = 0;
 	for (a = 0; a < map.length; a++) { // For every place
 		for (b = 0; b < map[a].adjacent.length; b++) { // For every adjacent place
