@@ -63,9 +63,6 @@ var game = {
 	},
 	preparingTheScene: function () {
 		// TODO: Update carrages and lanterns
-		$('.preparing-the-scene').show().children('.next-state').click(function(){
-			game.nextState(1);
-		});
 		$('<p></p>', {
 			text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carriages and ' + game.config.lanterns + ' lanterns).'
 		}).prependTo('.preparing-the-scene');
@@ -74,6 +71,7 @@ var game = {
 			murder: new Array(),
 			murderMove: new Array()
 		}
+		game.nextState(1);
 	},
 	theTargetsAreIdentified: function () {
 		var mapMurders = map.key('murder');
@@ -140,13 +138,9 @@ var game = {
 				}
 			}
 			if (game.config.policeMarked.length >= (game.config.police - game.config.fakePolice) && game.config.policeUnmarked.length >= game.config.fakePolice) {
-				$('.patrolling-the-streets .next-state').show().click(function(){
-					$('.token-woman').remove();
-					$('.token-police').remove();
-					game.nextState(4);
-				});
-			} else {
-				$('.patrolling-the-streets .next-state').hide();
+				$('.token-woman').remove();
+				$('.token-police').remove();
+				game.nextState(4);
 			}
 		});
 	},
@@ -313,10 +307,8 @@ var game = {
 						$('.token-move-police').remove();
 						movedPolice++;
 						if (movedPolice >= game.config.policeMarked.length) {
-							$('.hunting-the-monster .next-state').show().click(function(){
-								$('.token-police').remove();
-								game.nextState(11);
-							});
+							$('.token-police').remove();
+							game.nextState(11);
 						}
 					}).appendTo('.map');
 				}
@@ -333,10 +325,8 @@ var game = {
 				$('.token-move-police').remove();
 				movedPolice++;
 				if (movedPolice >= game.config.policeMarked.length) {
-					$('.hunting-the-monster .next-state').show().click(function(){
-						$('.token-police').remove();
-						game.nextState(11);
-					});
+					$('.token-police').remove();
+					game.nextState(11);
 				}
 			}).appendTo('.map');
 		});
@@ -379,7 +369,7 @@ var game = {
 						$('.token-arrest').remove();
 						movedPolice++;
 						if (movedPolice >= (game.config.police - game.config.fakePolice)) {
-							$('token').remove();
+							$('.token.selectable').remove();
 							game.config.remainingMoves--;
 							game.nextState(8);
 						}
@@ -422,7 +412,17 @@ var game = {
 		game.config.policeRevealed.push(mapid);
 	},
 	murder: function() {
-		var randomIndex = Math.floor(Math.random() * game.config.womenMarked.length); // Randomly select a murder victim
+		var baseX = map[game.config.base].position[0];
+		var baseY = map[game.config.base].position[1];
+		
+		// Sort by closest to base
+		game.config.womenMarked = _.sortBy(game.config.womenMarked, function (num) {
+			return Math.hypot(Math.abs(map[num].position[0] - baseX), Math.abs(map[num].position[1] - baseY));
+		});
+
+		// Randomly select a murder victim (slightly less likely to select a far away murder)
+		var randomIndex = Math.round(Math.abs((game.randomSafe(0.2) / 10) - 1) * game.config.womenMarked.length);
+		
 		var mapid = game.config.womenMarked[randomIndex];
 		jack[jack.length - 1].route.push(mapid); // Put Jack at the scene of the crime
 		jack[jack.length - 1].murder.push(mapid);
