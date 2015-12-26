@@ -97,26 +97,14 @@ var game = {
 		}).prependTo('.state.patrolling-the-streets');
 		for (a = 0; a < map.length; a++) {
 			if (($.inArray(a, game.config.womenMarked) !== -1) || ($.inArray(a, game.config.womenUnmarked) !== -1)) {
-				$('<span></span>', {
-					text: 'woman',
-					'data-mapid': a,
-					class: 'label label-info token token-woman token-woman-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info token token-woman token-woman-' + a;
+				draw.createElement(a, 'woman', classes).appendTo('.map');
 			}
 			if (map[a].station) {
-				$('<span></span>', {
-					text: a + ' police',
-					'data-mapid': a,
-					class: 'label label-info selectable token token-police marked token-police-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
-				$('<span></span>', {
-					text: a + ' not police',
-					'data-mapid': a,
-					class: 'label label-info selectable token token-police unmarked token-police-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info selectable token token-police marked token-police-' + a;
+				draw.createElement(a, 'police', classes).appendTo('.map');
+				classes = 'label label-info selectable token token-police unmarked token-police-' + a;
+				draw.createElement(a, 'not police', classes).appendTo('.map');
 			}
 		}
 		$('.token-police').click(function(){
@@ -207,30 +195,18 @@ var game = {
 
 		for (a = 0; a < map.length; a++) {
 			if ($.inArray(a, game.config.womenMarked) !== -1) {
-				$('<span></span>', {
-					text: 'wretched',
-					'data-mapid': a,
-					class: 'label label-info selectable token token-wretched token-wretched-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info selectable token token-wretched token-wretched-' + a;
+				draw.createElement(a, 'wretched', classes).appendTo('.map');
 			}
 			if ($.inArray(a, game.config.policeRevealed) !== -1) {
 				if ($.inArray(a, game.config.policeMarked) !== -1) {
-					$('<span></span>', {
-						text: 'real police',
-						'data-mapid': a,
-						class: 'label label-info revealed token token-police token-police-' + a,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).appendTo('.map');
+					var classes = 'label label-info revealed token token-police token-police-' + a;
+					draw.createElement(a, 'real police', classes).appendTo('.map');
 				}
 			} else {
 				if (($.inArray(a, game.config.policeMarked) !== -1) || ($.inArray(a, game.config.policeUnmarked) !== -1)) {
-					$('<span></span>', {
-						text: 'police',
-						'data-mapid': a,
-						class: 'label label-info token token-police token-police-' + a,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).appendTo('.map');
+					var classes = 'label label-info token token-police token-police-' + a;
+					draw.createElement(a, 'police', classes).appendTo('.map');
 				}
 			}
 		}
@@ -254,13 +230,8 @@ var game = {
 
 			for (b = 0; b < map[mapid].adjacentNumber.length; b++) {
 				if ($.inArray(map[mapid].adjacentNumber[b], illegalMoves) == -1) {
-					$('<span></span>', {
-						text: 'move here',
-						'data-mapidPrev': mapid,
-						'data-mapid': map[mapid].adjacentNumber[b],
-						class: 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b],
-						style: 'left:' + map[map[mapid].adjacentNumber[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacentNumber[b]].position[1] + ';'
-					}).click(function(){
+					var classes = 'label label-info selectable token token-move-wretched token-wretched-' + map[mapid].adjacentNumber[b];
+					draw.createElement(map[mapid].adjacentNumber[b], 'move here', classes).data('mapidPrev', mapid).click(function(){
 						var index = game.config.womenMarked.indexOf(mapid); // Find previous map id in array
 						if (index !== -1) {
 							game.config.womenMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
@@ -296,20 +267,12 @@ var game = {
 		var movedPolice = 0;
 		for (a = 0; a < map.length; a++) {
 			if ($.inArray(a, game.config.policeMarked) !== -1) {
-				$('<span></span>', {
-					text: 'real police',
-					'data-mapid': a,
-					class: 'label label-info selectable revealed token token-police token-police-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info selectable revealed token token-police token-police-' + a;
+				draw.createElement(a, 'real police', classes).appendTo('.map');
 			}
 			if (a == _.last(jack).murder[_.last(jack).murder.length - 1]) {
-				$('<span></span>', {
-					text: 'murder',
-					'data-mapid': a,
-					class: 'label label-info token token-murder token-murder-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info token token-murder token-murder-' + a;
+				draw.createElement(a, 'murder', classes).appendTo('.map');
 			}
 		}
 		$('.token-police').click(function(){
@@ -340,13 +303,8 @@ var game = {
 
 			for (b = 0; b < twoSteps.length; b++) {
 				if ($.inArray(twoSteps[b], game.config.policeMarked) == -1) {
-					$('<span></span>', {
-						text: 'move here',
-						'data-mapidPrev': mapid,
-						'data-mapid': twoSteps[b],
-						class: 'label label-info selectable token token-move-police token-police-' + twoSteps[b],
-						style: 'left:' + map[twoSteps[b]].position[0] + ';' + 'top:' + map[twoSteps[b]].position[1] + ';'
-					}).click(function(){
+					var classes = 'label label-info selectable token token-move-police token-police-' + twoSteps[b];
+					draw.createElement(twoSteps[b], 'move here', classes).data('mapidPrev', mapid).click(function(){
 						var index = game.config.policeMarked.indexOf(mapid); // Find previous map id in array
 						if (index !== -1) {
 							game.config.policeMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
@@ -364,13 +322,9 @@ var game = {
 				}
 			}
 			$('.token-police-' + mapid).remove();
-			$('<span></span>', {
-				text: 'don\'t move',
-				'data-mapidPrev': mapid,
-				'data-mapid': mapid,
-				class: 'label label-info selectable token token-move-police token-police-' + mapid,
-				style: 'left:' + map[mapid].position[0] + ';' + 'top:' + map[mapid].position[1] + ';'
-			}).click(function(){
+
+			var classes = 'label label-info selectable token token-move-police token-police-' + mapid;
+			draw.createElement(mapid, 'don\'t move', classes).data('mapidPrev', mapid).click(function(){
 				var index = game.config.policeMarked.indexOf(mapid); // Find previous map id in array
 				if (index !== -1) {
 					game.config.policeMarked[index] = $(this).data('mapid'); // Replace map id in array with new location
@@ -399,38 +353,23 @@ var game = {
 		var completePolice = 0;
 		for (a = 0; a < map.length; a++) {
 			if ($.inArray(a, game.config.policeMarked) !== -1) {
-				$('<span></span>', {
-					text: 'search',
-					'data-mapid': a,
-					class: 'label label-info selectable token token-search token-search-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
-				$('<span></span>', {
-					text: 'arrest',
-					'data-mapid': a,
-					class: 'label label-info selectable token token-arrest-adjacent token-arrest-adjacent-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info selectable token token-search token-search-' + a;
+				draw.createElement(a, 'search', classes).appendTo('.map');
+				classes = 'label label-info selectable token token-arrest-adjacent token-arrest-adjacent-' + a;
+				draw.createElement(a, 'arrest', classes).appendTo('.map');
+
 			}
 			if ($.inArray(a, _.last(jack).murder[_.last(jack).murder.length - 1]) !== -1) {
-				$('<span></span>', {
-					text: 'murder',
-					'data-mapid': a,
-					class: 'label label-info token token-murder token-murder-' + a,
-					style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-				}).appendTo('.map');
+				var classes = 'label label-info token token-murder token-murder-' + a;
+				draw.createElement(a, 'murder', classes).appendTo('.map');
 			}
 		}
 		$('.token-arrest-adjacent').click(function(){
 			var mapid = $(this).data('mapid');
 			for (b = 0; b < map[mapid].adjacent.length; b++) {
 				if (_.has(map[map[mapid].adjacent[b]], 'number')) {
-					$('<span></span>', {
-						text: 'arrest',
-						'data-mapid': map[mapid].adjacent[b],
-						class: 'label label-info selectable token token-arrest token-arrest-' + a,
-						style: 'left:' + map[map[mapid].adjacent[b]].position[0] + ';' + 'top:' + map[map[mapid].adjacent[b]].position[1] + ';'
-					}).click(function(){
+					var classes = 'label label-info selectable token token-arrest token-arrest-' + a;
+					draw.createElement(map[mapid].adjacent[b], 'arrest', classes).click(function(){
 						var mapid = $(this).data('mapid');
 						if (mapid == _.last(jack).route[_.last(jack).route.length - 1]) {
 							console.log('Jack has been arrested.');
@@ -531,29 +470,28 @@ var draw = {
 			if (map[a].position != undefined) {
 				if (map[a].number != undefined) {
 					var murder = (map[a].murder ? ' location-murder' : '');
-					$('<span></span>', {
-						class: 'label label-primary location-number location-' + a + murder,
-						text: map[a].number,
-						style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-					}).prependTo('.map');
+					var classes = 'label label-primary location-number location-' + a + murder;
+					draw.createElement(a, map[a].number, classes).prependTo('.map');
 				} else {
 					if (map[a].station) {
 						var station = ' location-station';
-						$('<span></span>', {
-							class: 'label label-default location location-' + a + station,
-							text: 's',
-							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-						}).prependTo('.map');
+						var classes = 'label label-default location location-' + a + station;
+						draw.createElement(a, 's', classes).prependTo('.map');
 					} else {
-						$('<span></span>', {
-							class: 'label label-default location location-' + a,
-							text: a,
-							style: 'left:' + map[a].position[0] + ';' + 'top:' + map[a].position[1] + ';'
-						}).prependTo('.map');
+						var classes = 'label label-default location location-' + a;
+						draw.createElement(a, ' ', classes).prependTo('.map');
 					}
 				}
 			}
 		}
+	},
+	createElement: function (mapid, labelText, classes) {
+		return $('<span></span>', {
+			'data-mapid': mapid,
+			class: classes,
+			text: labelText,
+			style: 'left:' + map[mapid].position[0] + ';' + 'top:' + map[mapid].position[1] + ';'
+		});
 	},
 	updateTitle: function() {
 		$('h1').remove();
