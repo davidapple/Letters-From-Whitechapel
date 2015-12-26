@@ -270,30 +270,8 @@ var game = {
 			}
 		}
 		$('.token-police').click(function(){
-			var mapid = $(this).data('mapid');
-
-			// Show all possible police movements
-			var addNonNumber = function(array, id) {
-				if (!map[id].number) {
-					array.push(id);
-					return array;
-				} else {
-					return _.union(withoutNumbers(map[id].adjacent), array);
-				}
-			}
-			var withoutNumbers = function(current) {
-				return _.reduce(current, function(memo, item) {
-					return addNonNumber(memo, item);
-				}, []);
-			}
-			var twoSteps = function(current) {
-				return _.union(_.flatten(_.map(withoutNumbers(current), function(a, i) {
-						return withoutNumbers(map[a].adjacent);
-					})
-				))
-			}
-			
-			var twoSteps = twoSteps(map[mapid].adjacent);
+			var mapid = $(this).data('mapid');			
+			var twoSteps = game.twoSteps(map[mapid].adjacent);
 
 			for (b = 0; b < twoSteps.length; b++) {
 				if ($.inArray(twoSteps[b], game.config.policeMarked) == -1) {
@@ -427,6 +405,26 @@ var game = {
 		jack[jack.length - 1].route.push(mapid); // Put Jack at the scene of the crime
 		jack[jack.length - 1].murder.push(mapid);
 		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
+	},
+	twoSteps: function(current) {
+		// Show all possible police movements
+		var addNonNumber = function(array, id) {
+			if (!map[id].number) {
+				array.push(id);
+				return array;
+			} else {
+				return _.union(withoutNumbers(map[id].adjacent), array);
+			}
+		}
+		var withoutNumbers = function(current) {
+			return _.reduce(current, function(memo, item) {
+				return addNonNumber(memo, item);
+			}, []);
+		}
+		return _.union(_.flatten(_.map(withoutNumbers(current), function(a, i) {
+				return withoutNumbers(map[a].adjacent);
+			})
+		))
 	}
 }
 
@@ -437,6 +435,20 @@ jack.move = function () {
 	var baseY = map[game.config.base].position[1];
 
 	// TODO: If it's the first move, move to a position where arrest is impossible.
+	policeMoves = _.flatten(_.map(game.config.policeMarked, function (mapid) {
+		return game.twoSteps(map[mapid].adjacent);
+	}));
+
+	arrestable = _.uniq(_.flatten(_.map(policeMoves, function (mapid) {
+		return map[mapid].adjacent;
+	})));
+
+	arrestable = _.uniq(_.filter(arrestable, function (mapid) {
+		return _.has(map[mapid], 'number');
+	}));
+
+	// TODO: If adjacent to Jack is adjacent to police then arrestable is true
+	// TODO: Sort by distance to base and then sort by arrestable
 
 	// Just choose the shortest distance to base for now
 	var shortestDistance;
@@ -459,6 +471,7 @@ jack.move = function () {
 			}
 		}
 	}
+
 	return adjacentNumber[chosenPosition];
 }
 
