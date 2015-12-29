@@ -99,7 +99,22 @@
 .map .token.revealed {
     background-color: #ff00ff;
 }
-.map .token-murder {
+.map .token.police-0 {
+    background-color: #3333cc;
+}
+.map .token.police-1 {
+    background-color: #663300;
+}
+.map .token.police-2 {
+    background-color: #339900;
+}
+.map .token.police-3 {
+    background-color: #cc0000;
+}
+.map .token.police-4 {
+    background-color: #ffcc33;
+}
+.map .token.token-murder {
     background-color: #d9534f;
 }
 .move-tracker {

@@ -81,8 +81,9 @@ var game = {
 			start: new Array(),
 			revealed: new Array(),
 			route: new Array(),
-			search: new Array(),
-			arrest: new Array()
+			now: new Array(),
+			search: new Array(), // How many adjacent numbers are searchable (or arrestable)
+			clue: new Array()
 		}
 		game.nextState(1);
 	},
@@ -264,6 +265,7 @@ var game = {
 	},
 	alarmWhistles: function () {
 		_.last(police).route = _.map(_.last(police).start, function (mapid) { // Setup police to move
+			_.last(police).now.push(mapid);
 			return [mapid];
 		});
 		game.nextState(9);
@@ -284,11 +286,12 @@ var game = {
 		}).prependTo('.state.hunting-the-monster');
 
 		var movedPolice = 0;
-		var policeNow = _.map(_.last(police).route, function (route) { return _.last(route) });
+		var policeCounter = 0;
 		for (a = 0; a < map.length; a++) {
-			if ($.inArray(a, policeNow) !== -1) {
-				var classes = 'label label-info selectable revealed token token-police token-police-' + a;
-				draw.createElement(a, 'real police', classes).appendTo('.map');
+			if ($.inArray(a, _.last(police).now) !== -1) {
+				var classes = 'label label-info selectable revealed token token-police police-' + policeCounter + ' token-police-' + a;
+				draw.createElement(a, 'police', classes).appendTo('.map');
+				policeCounter++;
 			}
 			if (a == _.last(jack).murder[_.last(jack).murder.length - 1]) {
 				var classes = 'label label-info token token-murder token-murder-' + a;
@@ -300,18 +303,19 @@ var game = {
 			var twoSteps = game.twoSteps(map[mapid].adjacent);
 
 			for (b = 0; b < twoSteps.length; b++) {
-				if ($.inArray(twoSteps[b], policeNow) == -1) {
+				if ($.inArray(twoSteps[b], _.last(police).now) == -1) {
 					var classes = 'label label-info selectable token token-move-police token-police-' + twoSteps[b];
 					draw.createElement(twoSteps[b], 'move here', classes).data('mapidPrev', mapid).click(function(){
-						var index = policeNow.indexOf($(this).data('mapidPrev')); // Find previous map id in array
+						var index = _.last(police).now.indexOf($(this).data('mapidPrev')); // Find previous map id in array
 						var mapid = $(this).data('mapid');
 						if (index !== -1) {
 							police[police.length - 1].route[index].push(mapid);
+							police[police.length - 1].now[index] = mapid;
 						}
 						$(this).removeClass('selectable token-move-police').addClass('token-police').text('real police').unbind('click');
 						$('.token-move-police').remove();
 						movedPolice++;
-						if (movedPolice >= policeNow.length) {
+						if (movedPolice >= _.last(police).now.length) {
 							$('.token-police').remove();
 							game.nextState(11);
 						}
@@ -322,14 +326,14 @@ var game = {
 
 			var classes = 'label label-info selectable token token-move-police token-police-' + mapid;
 			draw.createElement(mapid, 'don\'t move', classes).data('mapidPrev', mapid).click(function(){
-				var index = policeNow.indexOf(mapid); // Find previous map id in array
+				var index = _.last(police).now.indexOf(mapid); // Find previous map id in array
 				if (index !== -1) {
 					police[police.length - 1].route[index].push($(this).data('mapid'));
 				}
 				$(this).removeClass('selectable token-move-police').addClass('token-police').text('real police').unbind('click');
 				$('.token-move-police').remove();
 				movedPolice++;
-				if (movedPolice >= policeNow.length) {
+				if (movedPolice >= _.last(police).now.length) {
 					$('.token-police').remove();
 					game.nextState(11);
 				}
@@ -337,7 +341,6 @@ var game = {
 		});
 	},
 	cluesAndSuspicion: function () {
-		var movedPolice = 0;
 		$('.clues-and-suspicion').show();
 		$('.clues-and-suspicion .next-state').hide();
 
@@ -345,11 +348,16 @@ var game = {
 			text: 'Each policeman pawn either looks for clues or executes an arrest.'
 		}).prependTo('.clues-and-suspicion');
 
+		var movedPolice = 0;
 		var completePolice = 0;
-		var policeNow = _.map(_.last(police).route, function (route) { return _.last(route) });
+
+		_.last(police).search = _.map(_.last(police).now, function (mapid) {
+			return game.searchable(mapid);
+		});
+
 		for (a = 0; a < map.length; a++) {
-			if ($.inArray(a, policeNow) !== -1) {
-				var classes = 'label label-info selectable token token-search-adjacent token-search-adjacent' + a;
+			if ($.inArray(a, _.last(police).now) !== -1) {
+				var classes = 'label label-info selectable token token-search-adjacent token-search-adjacent-' + a;
 				draw.createElement(a, 'search', classes).appendTo('.map');
 				classes = 'label label-info selectable token token-arrest-adjacent token-arrest-adjacent-' + a;
 				draw.createElement(a, 'arrest', classes).appendTo('.map');
@@ -362,58 +370,52 @@ var game = {
 		}
 		$('.token-arrest-adjacent').click(function(){
 			var mapid = $(this).data('mapid');
-			for (b = 0; b < map[mapid].adjacent.length; b++) {
-				if (_.has(map[map[mapid].adjacent[b]], 'number')) {
-					var classes = 'label label-info selectable token token-arrest token-arrest-' + a;
-					draw.createElement(map[mapid].adjacent[b], 'arrest', classes).click(function(){
-						var mapid = $(this).data('mapid');
-						if (mapid == _.last(jack).route[_.last(jack).route.length - 1]) {
-							console.log('Jack has been arrested.');
-						} else {
-							console.log('Jack has not been arrested.');
-						}
-						$('.token-arrest').remove();
-						movedPolice++;
-						if (movedPolice >= game.config.police) {
-							$('.token.selectable').remove();
-							game.config.remainingMoves--;
-							game.nextState(9);
-						}
-					}).appendTo('.map');
-				}
+			var index = _.indexOf(_.last(police).now, mapid);
+
+			for (b = 0; b < _.last(police).search[index].length; b++) {
+				var classes = 'label label-info selectable token token-arrest';
+				draw.createElement(_.last(police).search[index][b], 'arrest', classes).click(function(){
+					var mapid = $(this).data('mapid');
+					if (mapid == _.last(jack).route[_.last(jack).route.length - 1]) {
+						console.log('Jack has been arrested.');
+					} else {
+						console.log('Jack has not been arrested.');
+					}
+					$('.token-arrest').remove();
+					_.last(police).search[index] = undefined;
+					if (_.isEmpty(_.compact(_.flatten(_.last(police).search)))) {
+						$('.token.selectable').remove();
+						game.config.remainingMoves--;
+						game.nextState(9);
+					}
+				}).appendTo('.map');
 			}
 			$(this).prev().remove();
 			$(this).remove();
 		});
 		$('.token-search-adjacent').click(function(){
 			var mapid = $(this).data('mapid');
-			var adjacentLocations = map[mapid].adjacent.length - 1;
-			for (b = 0; b < map[mapid].adjacent.length; b++) {
-				if (_.has(map[map[mapid].adjacent[b]], 'number')) {
-					var classes = 'label label-info selectable token token-search token-search-' + a;
-					draw.createElement(map[mapid].adjacent[b], 'search', classes).click(function(){
-						var mapid = $(this).data('mapid');
-						if ($.inArray(mapid, _.last(jack).route) !== -1) {
-							console.log('Clue found at ' + map[mapid].number + '.');
-							$('.token-search').remove();
-							movedPolice++;
-						} else {
-							console.log('No clue found.');
-							$(this).remove();
-							adjacentLocations--;
-							console.log('adjacentLocations: ' + adjacentLocations);
-							if (adjacentLocations <= 0) {
-								movedPolice++;
-							}
-							console.log('movedPolice: ' + movedPolice);
-						}
-						if (movedPolice >= game.config.police) {
-							$('.token.selectable').remove();
-							game.config.remainingMoves--;
-							game.nextState(9);
-						}
-					}).appendTo('.map');
-				}
+			var index = _.indexOf(_.last(police).now, mapid);
+
+			for (b = 0; b < _.last(police).search[index].length; b++) {
+				var classes = 'label label-info selectable token token-search token-search-' + a;
+				draw.createElement(_.last(police).search[index][b], 'search', classes).click(function(){
+					var mapidAdjacent = $(this).data('mapid');
+					if ($.inArray(mapidAdjacent, _.last(jack).route) !== -1) {
+						console.log('Clue found at ' + map[mapidAdjacent].number + '.');
+						$('.token-search').remove();
+						_.last(police).search[index] = undefined;
+					} else {
+						console.log('No clue found.');
+						$(this).remove();
+						_.last(police).search[index][_.indexOf(_.last(police).search[index], mapidAdjacent)] = undefined;
+					}
+					if (_.isEmpty(_.compact(_.flatten(_.last(police).search)))) {
+						$('.token.selectable').remove();
+						game.config.remainingMoves--;
+						game.nextState(9);
+					}
+				}).appendTo('.map');
 			}
 			$(this).next().remove();
 			$(this).remove();
@@ -469,6 +471,7 @@ var game = {
 	},
 	twoSteps: function(current) {
 		// Show all possible police movements
+		// TODO: Fix bug in the cul-de-sac and triangular areas of the map
 		var addNonNumber = function(array, id) {
 			if (!map[id].number) {
 				array.push(id);
@@ -486,6 +489,14 @@ var game = {
 				return withoutNumbers(map[a].adjacent);
 			})
 		))
+	},
+	searchable: function (mapid) {
+		// Show all searchable (or arrestable) numbered map ids given a police location
+		return _.compact(_.map(map[mapid].adjacent, function (adj) {
+			if (_.has(map[adj], 'number')) {
+				return adj;
+			}
+		}));
 	}
 }
 
@@ -496,7 +507,7 @@ jack.move = function () {
 	var baseY = map[game.config.base].position[1];
 
 	// TODO: If it's the first move, move to a position where arrest is impossible.
-	policeMoves = _.flatten(_.map(game.config.policeMarked, function (mapid) {
+	policeMoves = _.flatten(_.map(_.last(_.last(jack).route), function (mapid) {
 		return game.twoSteps(map[mapid].adjacent);
 	}));
 
