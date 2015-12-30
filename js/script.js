@@ -272,6 +272,14 @@ var game = {
 	},
 	escapeTheNight: function () {
 		jack[jack.length - 1].route.push(jack.move()); // Jack's first move
+		
+		// Announce the end of the night (but not too early)
+		if (_.last(jack).route.length > 5) {
+			if (_.last(_.last(jack).route) == game.config.base) {
+				console.log('Jack has reached his base.')
+			}
+		}
+		
 		$('.move-tracker p span:nth-child(' + _.last(jack).murderMove[_.last(jack).murderMove.length - 1] + ')').addClass('murder');
 		var availableMoves = game.config.totalMoves - game.config.remainingMoves + 1;
 		$('.move-tracker p span').removeClass('active');
@@ -405,6 +413,9 @@ var game = {
 						console.log('Clue found at ' + map[mapidAdjacent].number + '.');
 						$('.token-search').remove();
 						_.last(police).search[index] = undefined;
+						_.last(police).clue.push(mapidAdjacent);
+						map[mapidAdjacent].clue = true;
+						draw.map();
 					} else {
 						console.log('No clue found.');
 						$(this).remove();
@@ -506,6 +517,11 @@ var game = {
 }
 
 jack.move = function () {
+
+	// TODO: Prevent moving through police
+	// TODO: If adjacent to base and nearly end of game; move to base and announce
+	// TODO: If close to base but too early in the night; avoid base
+
 	var adjacentNumber = map[jack[jack.length - 1].route[jack[jack.length - 1].route.length - 1]].adjacentNumber;
 	var adjacent = new Array();
 	var baseX = map[game.config.base].position[0];
@@ -559,6 +575,7 @@ jack.move = function () {
 			adjacent = _.sortBy(adjacent, 'arrestable');
 			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
 		break;
+		// TODO: If less than (three) moves from base; move away from base
 		default:
 			adjacent = _.sortBy(adjacent, 'distance');
 			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
@@ -589,6 +606,11 @@ var draw = {
 						var classes = 'label label-default location location-' + a;
 						draw.createElement(a, ' ', classes).prependTo('.map');
 					}
+				}
+				if (map[a].clue != undefined) {
+					var clue = (map[a].clue ? ' location-clue' : '');
+					var classes = 'label label-info token token-clue token-clue-' + a + clue;
+					draw.createElement(a, 'clue', classes).prependTo('.map');
 				}
 			}
 		}
