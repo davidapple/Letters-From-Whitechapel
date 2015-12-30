@@ -497,6 +497,11 @@ var game = {
 				return adj;
 			}
 		}));
+	},
+	sort: function (array) {
+		return _.sortBy(array, function (num) {
+			return num;
+		});
 	}
 }
 
@@ -506,45 +511,63 @@ jack.move = function () {
 	var baseX = map[game.config.base].position[0];
 	var baseY = map[game.config.base].position[1];
 
-	// TODO: If it's the first move, move to a position where arrest is impossible.
-	policeMoves = _.flatten(_.map(_.last(_.last(jack).route), function (mapid) {
+	// Everywhere police could be
+	policeMoves = _.flatten(_.map(_.flatten(_.last(police).route), function (mapid) {
 		return game.twoSteps(map[mapid].adjacent);
 	}));
 
-	arrestable = _.uniq(_.flatten(_.map(policeMoves, function (mapid) {
-		return map[mapid].adjacent;
-	})));
+	// Everywhere police could arrest
+	arrestable = new Array();
+	arrestable = game.sort(
+		_.flatten(_.map(policeMoves, function (mapid) {
+			return game.searchable(mapid);
+		}))
+	);
 
-	arrestable = _.uniq(_.filter(arrestable, function (mapid) {
-		return _.has(map[mapid], 'number');
-	}));
+	// Everywhere police could arrest (and angles from which it can be arrested)
+	arrestable = _.countBy(arrestable, function (num) {
+		return num;
+	});
 
-	// TODO: If adjacent to Jack is adjacent to police then arrestable is true
-	// TODO: Sort by distance to base and then sort by arrestable
-
-	// Just choose the shortest distance to base for now
-	var shortestDistance;
-	var chosenPosition;
+	var randomIndex;
 
 	for (a = 0; a < adjacentNumber.length; a++) { // For each position adjacent to Jack
 		var baseDistance = Math.hypot(Math.abs(map[adjacentNumber[a]].position[0] - baseX), Math.abs(map[adjacentNumber[a]].position[1] - baseY));
 		adjacent[a] = new Array(); // Create a lovely array of options listing pros and cons
 		adjacent[a].number = adjacentNumber[a];
 		adjacent[a].distance = baseDistance;
-
-		// Just choose the shortest distance to base for now
-		if (a == 0) {
-			shortestDistance = baseDistance;
-			chosenPosition = a;
-		} else {
-			if (baseDistance < shortestDistance) {
-				shortestDistance = baseDistance;
-				chosenPosition = a;
-			}
-		}
+		adjacent[a].arrestable = _.has(arrestable, adjacentNumber[a]) ? true : false;
+		adjacent[a].arrestableAngles = arrestable[adjacentNumber[a]];
 	}
 
-	return adjacentNumber[chosenPosition];
+	switch (_.last(jack).route.length) {
+		case 1: // Jack's first move
+			adjacent = _.sortBy(adjacent, 'distance');
+			adjacent = _.sortBy(adjacent, 'arrestableAngles');
+			adjacent = _.sortBy(adjacent, 'arrestable');
+			var unarrestableCount = _.without(_.map(adjacent, function (obj) { return obj.arrestable; }), true).length
+			if (unarrestableCount > 0) {
+				adjacent.splice(unarrestableCount, (adjacent.length - unarrestableCount)); // Splice arrestable locations
+				randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacent.length + 1));
+			} else {
+				randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
+			}
+		break;
+		case 2: // Jack's second move
+			adjacent = _.sortBy(adjacent, 'distance');
+			adjacent = _.sortBy(adjacent, 'arrestableAngles');
+			adjacent = _.sortBy(adjacent, 'arrestable');
+			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
+		break;
+		default:
+			adjacent = _.sortBy(adjacent, 'distance');
+			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
+		break;
+	}
+
+	_.last(jack).adjacent = adjacent; // Save this info to jack for console reference
+
+	return adjacent[randomIndex].number;
 }
 
 /* Draw
