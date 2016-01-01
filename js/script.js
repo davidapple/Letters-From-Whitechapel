@@ -474,7 +474,7 @@ var game = {
 		jack[jack.length - 1].murder.push(mapid);
 		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
 	},
-	twoSteps: function(mapid) {
+	oneStep: function (mapid) {
 		// Show all possible police movements
 		var addNonNumber = function(array, id) {
 			if (!map[id].number) {
@@ -491,18 +491,20 @@ var game = {
 				return addNonNumber(memo, item);
 			}, []);
 		}
-		return _.union(_.flatten(_.map(withoutNumbers(map[mapid].adjacent), function(a, i) {
+		return _.union(_.flatten(_.map(withoutNumbers([mapid]), function(a, i) {
 				return withoutNumbers(map[a].adjacent);
 			})
 		))
 	},
-	searchable: function (mapid) {
-		// Show all searchable (or arrestable) numbered map ids given a police location
-		return _.compact(_.map(map[mapid].adjacent, function (adj) {
-			if (_.has(map[adj], 'number')) {
-				return adj;
-			}
-		}));
+	twoSteps: function (mapid) {
+		return _.union(_.flatten(_.map(game.oneStep(mapid), function (id) {
+			return game.oneStep(id);
+		})));
+	},
+	threeSteps: function (mapid) {
+		return _.union(_.flatten(_.map(game.twoSteps(mapid), function (id) {
+			return game.oneStep(id);
+		})));
 	},
 	searchable: function (mapid) {
 		// Show all searchable (or arrestable) numbered map ids given a police location
@@ -511,6 +513,20 @@ var game = {
 				return adj;
 			}
 		}));
+	},
+	searchableAll: function (mapid) {
+		// Show all searchable (or arrestable) numbered map ids given a police location
+		return _.compact(_.map(map[mapid].adjacent, function (adj) {
+			if (_.has(map[adj], 'number')) {
+				return adj;
+			}
+		}));
+	},
+	searchable: function (mapid) {
+		// Filter locations with clues and murder spots
+		return _.filter(game.searchableAll(mapid), function (id) {
+			return _.indexOf(_.last(police).clue, id) < 0 && _.indexOf(_.last(jack).murder, id) < 0;
+		});
 	},
 	sort: function (array) {
 		return _.sortBy(array, function (num) {
