@@ -110,7 +110,7 @@ var game = {
 		for (a = 0; a < map.length; a++) {
 			if (($.inArray(a, game.config.womenMarked) !== -1) || ($.inArray(a, game.config.womenUnmarked) !== -1)) {
 				var classes = 'label label-info token token-woman token-woman-' + a;
-				draw.createElement(a, 'woman', classes).appendTo('.map');
+				draw.createElement(a, '', classes).appendTo('.map');
 			}
 			if (map[a].station) {
 				var classes = 'label label-info selectable token token-police marked token-police-' + a;
@@ -297,7 +297,7 @@ var game = {
 			}
 			if (a == _.last(jack).murder[_.last(jack).murder.length - 1]) {
 				var classes = 'label label-info token token-murder token-murder-' + a;
-				draw.createElement(a, 'murder', classes).appendTo('.map');
+				draw.createElement(a, '', classes).appendTo('.map');
 			}
 		}
 		$('.token-police').click(function(){
