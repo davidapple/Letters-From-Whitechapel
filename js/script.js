@@ -124,16 +124,13 @@ var game = {
 			if ($(this).hasClass('marked')) {
 				if ($(this).hasClass('selected')) {
 					$(this).removeClass('selected');
-					//game.config.policeMarked.splice($.inArray(mapid, game.config.policeMarked), 1);
 					_.last(police).start = _.without(_.last(police).start, mapid); // Splice the mapid
 				} else {
 					if (_.last(police).start.length < game.config.police) {
 						$(this).addClass('selected');
-						//game.config.policeMarked.push(mapid);
 						_.last(police).start.push(mapid);
 						if ($(this).next().hasClass('selected')) {
 							$(this).next().removeClass('selected');
-							//game.config.policeUnmarked.splice($.inArray(mapid, game.config.policeUnmarked), 1);
 							_.last(police).fake = _.without(_.last(police).fake, mapid);
 						}
 					}
@@ -142,16 +139,13 @@ var game = {
 			if ($(this).hasClass('unmarked')) {
 				if ($(this).hasClass('selected')) {
 					$(this).removeClass('selected');
-					//game.config.policeUnmarked.splice($.inArray(mapid, game.config.policeUnmarked), 1);
 					_.last(police).fake = _.without(_.last(police).fake, mapid);
 				} else {
 					if (_.last(police).fake.length < game.config.fakePolice) {
 						$(this).addClass('selected');
-						//game.config.policeUnmarked.push(mapid);
 						_.last(police).fake.push(mapid);
 						if ($(this).prev().hasClass('selected')) {
 							$(this).prev().removeClass('selected');
-							//game.config.policeMarked.splice($.inArray(mapid, game.config.policeMarked), 1);
 							_.last(police).start = _.without(_.last(police).start, mapid);
 						}
 					}
@@ -308,7 +302,7 @@ var game = {
 		}
 		$('.token-police').click(function(){
 			var mapid = $(this).data('mapid');
-			var twoSteps = game.twoSteps(map[mapid].adjacent);
+			var twoSteps = game.twoSteps(mapid);
 
 			for (b = 0; b < twoSteps.length; b++) {
 				if ($.inArray(twoSteps[b], _.last(police).now) == -1) {
@@ -480,15 +474,16 @@ var game = {
 		jack[jack.length - 1].murder.push(mapid);
 		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
 	},
-	twoSteps: function(current) {
+	twoSteps: function(mapid) {
 		// Show all possible police movements
-		// TODO: Fix bug in the cul-de-sac and triangular areas of the map
 		var addNonNumber = function(array, id) {
 			if (!map[id].number) {
 				array.push(id);
 				return array;
 			} else {
-				return _.union(withoutNumbers(map[id].adjacent), array);
+				return _.union(withoutNumbers(_.filter(map[id].adjacent, function (mapid) {
+					return !map[mapid].number;
+				})), array);
 			}
 		}
 		var withoutNumbers = function(current) {
@@ -496,10 +491,18 @@ var game = {
 				return addNonNumber(memo, item);
 			}, []);
 		}
-		return _.union(_.flatten(_.map(withoutNumbers(current), function(a, i) {
+		return _.union(_.flatten(_.map(withoutNumbers(map[mapid].adjacent), function(a, i) {
 				return withoutNumbers(map[a].adjacent);
 			})
 		))
+	},
+	searchable: function (mapid) {
+		// Show all searchable (or arrestable) numbered map ids given a police location
+		return _.compact(_.map(map[mapid].adjacent, function (adj) {
+			if (_.has(map[adj], 'number')) {
+				return adj;
+			}
+		}));
 	},
 	searchable: function (mapid) {
 		// Show all searchable (or arrestable) numbered map ids given a police location
@@ -529,7 +532,7 @@ jack.move = function () {
 
 	// Everywhere police could be
 	policeMoves = _.flatten(_.map(_.flatten(_.last(police).route), function (mapid) {
-		return game.twoSteps(map[mapid].adjacent);
+		return game.twoSteps(mapid);
 	}));
 
 	// Everywhere police could arrest
@@ -578,7 +581,7 @@ jack.move = function () {
 		// TODO: If less than (three) moves from base; move away from base
 		default:
 			adjacent = _.sortBy(adjacent, 'distance');
-			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
+			randomIndex = Math.floor(Math.abs((game.randomSafe(0.9) / 10) - 1) * (adjacentNumber.length + 1));
 		break;
 	}
 
