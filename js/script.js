@@ -265,7 +265,11 @@ var game = {
 		game.nextState(9);
 	},
 	escapeTheNight: function () {
-		jack[jack.length - 1].route.push(jack.move()); // Jack's first move
+		if ( jack.canMove() ) {
+			_.last(jack).route.push(jack.move());
+		} else {
+			console.log('Jack can\'t move');
+		}
 		
 		// Announce the end of the night (but not too early)
 		if (_.last(jack).route.length > 5) {
@@ -535,13 +539,12 @@ var game = {
 	}
 }
 
-jack.move = function () {
+jack.move = function () { // Returns a SyntaxError error if Jack can't move
 
-	// TODO: Prevent moving through police
 	// TODO: If adjacent to base and nearly end of game; move to base and announce
 	// TODO: If close to base but too early in the night; avoid base
 
-	var adjacentNumber = map[jack[jack.length - 1].route[jack[jack.length - 1].route.length - 1]].adjacentNumber;
+	var adjacentNumber = jack.oneStep(_.last(_.last(jack).route)); // Prevent moving through police
 	var adjacent = new Array();
 	var baseX = map[game.config.base].position[0];
 	var baseY = map[game.config.base].position[1];
@@ -606,6 +609,44 @@ jack.move = function () {
 	return adjacent[randomIndex].number;
 }
 
+jack.oneStep = function (mapid) {
+	// Show all possible Jack movements
+	var adjacentNumbers = new Array();
+	var blacklist = new Array();
+
+	var nextStep = function (array) {
+		var nonNumbers = _.compact(_.map(array, function (id) {
+			if (_.indexOf(blacklist, id) == -1) { // If it's not been processed already
+				blacklist.push(id); // Make sure it's not processed again
+				if (_.indexOf(_.last(police).now, id) == -1) { // Jack can't pass police
+					if (map[id].number) {
+						adjacentNumbers.push(id); // Store numbers
+					} else {
+						return id; // Return non numbers
+					}
+				}
+			}
+		}));
+
+		// Loop
+		if (nonNumbers.length > 0) {
+			nonNumbers = _.flatten(_.map(nonNumbers, function (num) {
+				nextStep(map[num].adjacent);
+			}));
+		} else {
+			return nonNumbers;
+		}
+	}
+
+	nextStep(map[mapid].adjacent); // Go
+
+	return _.without(adjacentNumbers, mapid);
+}
+
+jack.canMove = function () {
+	return !_.isEmpty(jack.oneStep(_.last(_.last(jack).route)));
+}
+
 /* Draw
    ----- */
 var draw = {
@@ -629,7 +670,7 @@ var draw = {
 				if (map[a].clue != undefined) {
 					var clue = (map[a].clue ? ' location-clue' : '');
 					var classes = 'label label-info token token-clue token-clue-' + a + clue;
-					draw.createElement(a, 'clue', classes).prependTo('.map');
+					draw.createElement(a, '', classes).prependTo('.map');
 				}
 			}
 		}

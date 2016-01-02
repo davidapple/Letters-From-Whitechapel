@@ -151,6 +151,24 @@
   font-family: 'FontAwesome';
   content: "\f182";
 }
+.map .token-clue {
+    display: block;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: -10px;
+    margin-left: -11px;
+    background-color: #f5e79e;
+    color: #333;
+    text-align: center;
+    font-size: 19px;
+    z-index: 1;
+    opacity: 0.8;
+}
+.map .token-clue:before {
+    font-family: 'FontAwesome';
+    content: "\f1b0";
+}
 .move-tracker {
 	position: absolute;
 	top: 672px;
