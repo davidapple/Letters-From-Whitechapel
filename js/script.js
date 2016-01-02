@@ -544,7 +544,7 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 	// TODO: If adjacent to base and nearly end of game; move to base and announce
 	// TODO: If close to base but too early in the night; avoid base
 
-	var adjacentNumber = jack.oneStep(_.last(_.last(jack).route)); // Prevent moving through police
+	var adjacentNumber = jack.oneStepAvoidPolice(_.last(_.last(jack).route)); // Prevent moving through police
 	var adjacent = new Array();
 	var baseX = map[game.config.base].position[0];
 	var baseY = map[game.config.base].position[1];
@@ -612,9 +612,39 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 jack.oneStep = function (mapid) {
 	// Show all possible Jack movements
 	var adjacentNumbers = new Array();
-	var blacklist = new Array();
 
-	var nextStep = function (array) {
+	var nextStep = function (array, blacklist) {
+		var nonNumbers = _.compact(_.map(array, function (id) {
+			if (_.indexOf(blacklist, id) == -1) { // If it's not been processed already
+				blacklist.push(id); // Make sure it's not processed again
+				if (map[id].number) {
+					adjacentNumbers.push(id); // Store numbers
+				} else {
+					return id; // Return non numbers
+				}
+			}
+		}));
+
+		// Loop
+		if (nonNumbers.length > 0) {
+			nonNumbers = _.flatten(_.map(nonNumbers, function (num) {
+				nextStep(map[num].adjacent, blacklist);
+			}));
+		} else {
+			return nonNumbers;
+		}
+	}
+
+	nextStep(map[mapid].adjacent, []); // Go
+
+	return _.without(adjacentNumbers, mapid);
+}
+
+jack.oneStepAvoidPolice = function (mapid) {
+	// Show all possible Jack movements
+	var adjacentNumbers = new Array();
+
+	var nextStep = function (array, blacklist) {
 		var nonNumbers = _.compact(_.map(array, function (id) {
 			if (_.indexOf(blacklist, id) == -1) { // If it's not been processed already
 				blacklist.push(id); // Make sure it's not processed again
@@ -631,20 +661,58 @@ jack.oneStep = function (mapid) {
 		// Loop
 		if (nonNumbers.length > 0) {
 			nonNumbers = _.flatten(_.map(nonNumbers, function (num) {
-				nextStep(map[num].adjacent);
+				nextStep(map[num].adjacent, blacklist);
 			}));
 		} else {
 			return nonNumbers;
 		}
 	}
 
-	nextStep(map[mapid].adjacent); // Go
+	nextStep(map[mapid].adjacent, []); // Go
 
 	return _.without(adjacentNumbers, mapid);
 }
 
 jack.canMove = function () {
-	return !_.isEmpty(jack.oneStep(_.last(_.last(jack).route)));
+	return !_.isEmpty(jack.oneStepAvoidPolice(_.last(_.last(jack).route)));
+}
+
+jack.routeToBase = function (mapid) {
+	var counter = 2;
+
+	var step = function (array) {
+		counter++;
+		return _.uniq(_.flatten(_.map(array, function (id) {
+			return jack.oneStep(id);
+		})));
+	}
+	
+	var massiveArray = step(jack.oneStep(mapid)); // Go
+
+	// Loop
+	while (_.indexOf(massiveArray, game.config.base) == -1) {
+		massiveArray = step(massiveArray);
+	}
+	console.log('Base found ' + counter + ' steps away');
+}
+
+jack.routeToBaseAvoidPolice = function (mapid) {
+	var counter = 2;
+
+	var step = function (array) {
+		counter++;
+		return _.uniq(_.flatten(_.map(array, function (id) {
+			return jack.oneStepAvoidPolice(id);
+		})));
+	}
+	
+	var massiveArray = step(jack.oneStepAvoidPolice(mapid)); // Go
+
+	// Loop
+	while (_.indexOf(massiveArray, game.config.base) == -1) {
+		massiveArray = step(massiveArray);
+	}
+	console.log('Base found ' + counter + ' steps away');
 }
 
 /* Draw
