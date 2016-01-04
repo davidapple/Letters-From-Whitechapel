@@ -725,11 +725,12 @@ jack.routesAdvance = function (routes) {
 	return newRoutes;
 }
 
-jack.bruteForceRoute = function (mapid) {
+jack.bruteForceJackRoute = function (mapid) {
 	var routes = jack.mapidToRoutes(mapid);
 	var routesEnds = _.map(routes, function(route) {
 		return _.last(route);
 	});
+
 	var shortestRoutes = new Array();
 
 	// Loop
@@ -742,6 +743,71 @@ jack.bruteForceRoute = function (mapid) {
 			if (routesEnds[i] == game.config.base) {
 				shortestRoutes.push(routes[i]);
 			};
+		}
+	}
+
+	return shortestRoutes;
+}
+
+jack.bruteForceRoute = function (mapid) {
+
+	// TODO: Fix bug
+	// game.config.base = 124
+	// jack.bruteForceRoute(419)
+
+	var jackRoutes = jack.mapidToRoutes(mapid);
+	var baseRoutes = jack.mapidToRoutes(game.config.base);
+	var jackRoutesEnds = _.map(jackRoutes, function(route) {
+		return _.last(route);
+	});
+
+	var baseRoutesEnds = _.map(baseRoutes, function(route) {
+		return _.last(route);
+	});
+
+	var shortestRoutes = new Array();
+
+	// Loop
+	while (shortestRoutes.length < 1 && jackRoutes[0].length < 7) { // Impose a limit to stop it crashing
+
+		// Advance Jack
+		jackRoutes = jack.routesAdvance(jackRoutes);
+
+		jackRoutesEnds = _.map(jackRoutes, function(route) {
+			return _.last(route);
+		});
+
+		console.log('Advance Jack');
+
+		var intersection = _.intersection(jackRoutesEnds, baseRoutesEnds);
+		if (intersection.length > 0) {
+			for (a = 0; a < intersection.length; a++) {
+				shortestRoutes.push(
+					_.union(
+						baseRoutes[_.indexOf(baseRoutesEnds, intersection[a])],
+						jackRoutes[_.indexOf(jackRoutesEnds, intersection[a])].reverse()
+					)
+				);
+			}
+		}
+
+		if (shortestRoutes.length > 0) break;
+
+		// Advance Base
+		baseRoutes = jack.routesAdvance(baseRoutes);
+
+		baseRoutesEnds = _.map(baseRoutes, function(route) {
+			return _.last(route);
+		});
+
+		console.log('Advance Base');
+
+		var intersection = _.intersection(jackRoutesEnds, baseRoutesEnds);
+		if (intersection.length > 0) {
+			for (a = 0; a < intersection.length; a++) {
+				shortestRoutes.push(baseRoutes[_.indexOf(baseRoutesEnds, intersection[a])]);
+				shortestRoutes.push(jackRoutes[_.indexOf(jackRoutesEnds, intersection[a])].reverse());
+			}
 		}
 	}
 
