@@ -71,6 +71,7 @@ var game = {
 		$('<p></p>', {
 			text: 'Jack collects the special movement tokens (' + game.config.carriages + ' carriages and ' + game.config.lanterns + ' lanterns).'
 		}).prependTo('.preparing-the-scene');
+
 		jack[jack.length] = { // New night
 			route: new Array(),
 			murder: new Array(),
@@ -82,15 +83,18 @@ var game = {
 			revealed: new Array(),
 			route: new Array(),
 			now: new Array(),
-			search: new Array(), // How many adjacent numbers are searchable (or arrestable)
+			search: new Array(), // How many adjacent numbers are searchable
+			arrest: new Array(), // How many adjacent numbers are arrestable
 			clue: new Array()
 		}
 		game.nextState(1);
 	},
 	theTargetsAreIdentified: function () {
 		var mapMurders = map.key('murder');
-		while (game.config.womenMarked.length < game.config.wretched) { 
-			var index = game.randomInt(0, mapMurders.length);
+		mapMurders = game.sortSevenSteps(mapMurders);
+		while (game.config.womenMarked.length < game.config.wretched) {
+			// More likely to select murder spots 7 steps from base
+			var index = Math.floor(Math.abs((game.randomSafe(0.9) / 10) - 1) * (mapMurders.length + 1));
 			game.config.womenMarked.push(mapMurders[index]); // Randomly select wreched
 			mapMurders.splice(index, 1); // Prevent possibility of choosing duplicate locations
 		}
@@ -272,9 +276,11 @@ var game = {
 		}
 		
 		// Announce the end of the night (but not too early)
-		if (_.last(jack).route.length > 5) {
+		if (_.last(jack).route.length >= 6) {
 			if (_.last(_.last(jack).route) == game.config.base) {
-				console.log('Jack has reached his base.')
+				console.log('Jack has reached his base.');
+				$('.token').remove();
+				game.nextState(1);
 			}
 		}
 		
@@ -360,6 +366,9 @@ var game = {
 		_.last(police).search = _.map(_.last(police).now, function (mapid) {
 			return game.searchable(mapid);
 		});
+		_.last(police).arrest = _.map(_.last(police).now, function (mapid) {
+			return game.arrestable(mapid);
+		});
 
 		for (a = 0; a < map.length; a++) {
 			if ($.inArray(a, _.last(police).now) !== -1) {
@@ -378,9 +387,9 @@ var game = {
 			var mapid = $(this).data('mapid');
 			var index = _.indexOf(_.last(police).now, mapid);
 
-			for (b = 0; b < _.last(police).search[index].length; b++) {
+			for (b = 0; b < _.last(police).arrest[index].length; b++) {
 				var classes = 'label label-info selectable token token-arrest';
-				draw.createElement(_.last(police).search[index][b], 'arrest', classes).click(function(){
+				draw.createElement(_.last(police).arrest[index][b], 'arrest', classes).click(function(){
 					var mapid = $(this).data('mapid');
 					if (mapid == _.last(jack).route[_.last(jack).route.length - 1]) {
 						console.log('Jack has been arrested.');
@@ -412,7 +421,6 @@ var game = {
 						$('.token-search').remove();
 						_.last(police).search[index] = undefined;
 						_.last(police).clue.push(mapidAdjacent);
-						map[mapidAdjacent].clue = true;
 						draw.map();
 					} else {
 						console.log('No clue found.');
@@ -462,6 +470,9 @@ var game = {
 		_.last(police).revealed.push(mapid);
 	},
 	murder: function() {
+		game.config.womenMarked = game.sortSevenSteps(game.config.womenMarked);
+
+		/*
 		var baseX = map[game.config.base].position[0];
 		var baseY = map[game.config.base].position[1];
 		
@@ -469,6 +480,9 @@ var game = {
 		game.config.womenMarked = _.sortBy(game.config.womenMarked, function (num) {
 			return Math.hypot(Math.abs(map[num].position[0] - baseX), Math.abs(map[num].position[1] - baseY));
 		});
+		*/
+
+		// TODO: If there are revealed police, murder far from them?
 
 		// Randomly select a murder victim (slightly less likely to select a far away murder)
 		var randomIndex = Math.round(Math.abs((game.randomSafe(0.2) / 10) - 1) * game.config.womenMarked.length);
@@ -477,6 +491,12 @@ var game = {
 		jack[jack.length - 1].route.push(mapid); // Put Jack at the scene of the crime
 		jack[jack.length - 1].murder.push(mapid);
 		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
+	},
+	sortSevenSteps: function (array) {
+		// Sort by moves to base (7 being optimal)
+		return _.sortBy(array, function (num) {
+			return Math.abs(jack.routeToBase(num) - 7);
+		});
 	},
 	oneStep: function (mapid) {
 		// Show all possible police movements
@@ -510,15 +530,7 @@ var game = {
 			return game.oneStep(id);
 		})));
 	},
-	searchable: function (mapid) {
-		// Show all searchable (or arrestable) numbered map ids given a police location
-		return _.compact(_.map(map[mapid].adjacent, function (adj) {
-			if (_.has(map[adj], 'number')) {
-				return adj;
-			}
-		}));
-	},
-	searchableAll: function (mapid) {
+	arrestable: function (mapid) {
 		// Show all searchable (or arrestable) numbered map ids given a police location
 		return _.compact(_.map(map[mapid].adjacent, function (adj) {
 			if (_.has(map[adj], 'number')) {
@@ -528,7 +540,7 @@ var game = {
 	},
 	searchable: function (mapid) {
 		// Filter locations with clues and murder spots
-		return _.filter(game.searchableAll(mapid), function (id) {
+		return _.filter(game.arrestable(mapid), function (id) {
 			return _.indexOf(_.last(police).clue, id) < 0 && _.indexOf(_.last(jack).murder, id) < 0;
 		});
 	},
@@ -558,7 +570,7 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 	arrestable = new Array();
 	arrestable = game.sort(
 		_.flatten(_.map(policeMoves, function (mapid) {
-			return game.searchable(mapid);
+			return game.arrestable(mapid);
 		}))
 	);
 
@@ -576,11 +588,15 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 		adjacent[a].distance = baseDistance;
 		adjacent[a].arrestable = _.has(arrestable, adjacentNumber[a]) ? true : false;
 		adjacent[a].arrestableAngles = arrestable[adjacentNumber[a]];
+		adjacent[a].stepsToBase = jack.routeToBase(a);
+		adjacent[a].stepsToBaseAvoidPolice = jack.routeToBaseAvoidPolice(a);
 	}
 
 	switch (_.last(jack).route.length) {
 		case 1: // Jack's first move
 			adjacent = _.sortBy(adjacent, 'distance');
+			adjacent = _.sortBy(adjacent, 'stepsToBase');
+			adjacent = _.sortBy(adjacent, 'stepsToBaseAvoidPolice');
 			adjacent = _.sortBy(adjacent, 'arrestableAngles');
 			adjacent = _.sortBy(adjacent, 'arrestable');
 			var unarrestableCount = _.without(_.map(adjacent, function (obj) { return obj.arrestable; }), true).length
@@ -593,14 +609,23 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 		break;
 		case 2: // Jack's second move
 			adjacent = _.sortBy(adjacent, 'distance');
+			adjacent = _.sortBy(adjacent, 'stepsToBase');
+			adjacent = _.sortBy(adjacent, 'stepsToBaseAvoidPolice');
 			adjacent = _.sortBy(adjacent, 'arrestableAngles');
 			adjacent = _.sortBy(adjacent, 'arrestable');
 			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
 		break;
 		// TODO: If less than (three) moves from base; move away from base
 		default:
-			adjacent = _.sortBy(adjacent, 'distance');
-			randomIndex = Math.floor(Math.abs((game.randomSafe(0.9) / 10) - 1) * (adjacentNumber.length + 1));
+			// After 6 moves, if Jack can move to his base; make it so
+			if (_.last(jack).route.length >= 6 && _.indexOf(adjacent, game.config.base) !== -1) {
+				randomIndex = _.indexOf(adjacent, game.config.base);
+			} else {
+				adjacent = _.sortBy(adjacent, 'distance');
+				adjacent = _.sortBy(adjacent, 'stepsToBase');
+				adjacent = _.sortBy(adjacent, 'stepsToBaseAvoidPolice');
+				randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
+			}
 		break;
 	}
 
@@ -677,9 +702,55 @@ jack.canMove = function () {
 	return !_.isEmpty(jack.oneStepAvoidPolice(_.last(_.last(jack).route)));
 }
 
-jack.routeToBase = function (mapid) {
-	var counter = 2;
+jack.mapidToRoutes = function (mapid) {
+	return [[mapid]];
+}
 
+jack.routesAdvance = function (routes) {
+	var newRoutes = new Array();
+	for (a = 0; a < routes.length; a++) {
+		var adjacent = jack.oneStep(_.last(routes[a]));
+		if (routes[a].length < game.config.remainingMoves) { // Don't advance route if out of moves
+			for (b = 0; b < adjacent.length; b++) {
+				if (_.indexOf(routes[a], adjacent[b]) == -1) { // Don't retrace steps
+					newRoutes[newRoutes.length] = new Array();
+					for (c = 0; c < routes[a].length; c++) {
+						_.last(newRoutes).push(routes[a][c]);
+					}
+					_.last(newRoutes).push(adjacent[b]);
+				}
+			}
+		}
+	}
+	return newRoutes;
+}
+
+jack.bruteForceRoute = function (mapid) {
+	var routes = jack.mapidToRoutes(mapid);
+	var routesEnds = _.map(routes, function(route) {
+		return _.last(route);
+	});
+	var shortestRoutes = new Array();
+
+	// Loop
+	while (shortestRoutes.length < 1 && routes[0].length < 9) { // Impose a limit to stop it crashing
+		routes = jack.routesAdvance(routes);
+		routesEnds = _.map(routes, function(route) {
+			return _.last(route);
+		});
+		for (i = 0; i < routesEnds.length; i++) { // This brute force method is faster than indexOf apparently
+			if (routesEnds[i] == game.config.base) {
+				shortestRoutes.push(routes[i]);
+			};
+		}
+	}
+
+	return shortestRoutes;
+}
+
+jack.routeToBase = function (mapid) {
+	// TODO: Fix bug - jack.routeToBase(293) (when base is 255) return 4 not 3
+	var counter = 2;
 	var step = function (array) {
 		counter++;
 		return _.uniq(_.flatten(_.map(array, function (id) {
@@ -687,18 +758,22 @@ jack.routeToBase = function (mapid) {
 		})));
 	}
 	
-	var massiveArray = step(jack.oneStep(mapid)); // Go
+	var massiveArray = step(jack.oneStep(mapid));
 
-	// Loop
 	while (_.indexOf(massiveArray, game.config.base) == -1) {
-		massiveArray = step(massiveArray);
+		if (counter <= game.config.remainingMoves) {
+			massiveArray = step(massiveArray);
+		} else {
+			counter = undefined;
+			break;
+		}
 	}
-	console.log('Base found ' + counter + ' steps away');
+
+	return counter;
 }
 
 jack.routeToBaseAvoidPolice = function (mapid) {
 	var counter = 2;
-
 	var step = function (array) {
 		counter++;
 		return _.uniq(_.flatten(_.map(array, function (id) {
@@ -706,13 +781,17 @@ jack.routeToBaseAvoidPolice = function (mapid) {
 		})));
 	}
 	
-	var massiveArray = step(jack.oneStepAvoidPolice(mapid)); // Go
+	var massiveArray = step(jack.oneStepAvoidPolice(mapid));
 
-	// Loop
 	while (_.indexOf(massiveArray, game.config.base) == -1) {
-		massiveArray = step(massiveArray);
+		if (counter <= game.config.remainingMoves) {
+			massiveArray = step(massiveArray);
+		} else {
+			counter = undefined;
+			break;
+		}
 	}
-	console.log('Base found ' + counter + ' steps away');
+	return counter;
 }
 
 /* Draw
@@ -735,10 +814,11 @@ var draw = {
 						draw.createElement(a, ' ', classes).prependTo('.map');
 					}
 				}
-				if (map[a].clue != undefined) {
-					var clue = (map[a].clue ? ' location-clue' : '');
-					var classes = 'label label-info token token-clue token-clue-' + a + clue;
-					draw.createElement(a, '', classes).prependTo('.map');
+				if (police.length > 0) {
+					if ( _.indexOf(_.last(police).clue, a) !== -1 ) {
+						var classes = 'label label-info token token-clue token-clue-' + a;
+						draw.createElement(a, '', classes).prependTo('.map');
+					}
 				}
 			}
 		}
