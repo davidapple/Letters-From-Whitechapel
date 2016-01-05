@@ -472,19 +472,8 @@ var game = {
 	murder: function() {
 		game.config.womenMarked = game.sortSevenSteps(game.config.womenMarked);
 
-		/*
-		var baseX = map[game.config.base].position[0];
-		var baseY = map[game.config.base].position[1];
-		
-		// Sort by closest to base
-		game.config.womenMarked = _.sortBy(game.config.womenMarked, function (num) {
-			return Math.hypot(Math.abs(map[num].position[0] - baseX), Math.abs(map[num].position[1] - baseY));
-		});
-		*/
-
 		// TODO: If there are revealed police, murder far from them?
 
-		// Randomly select a murder victim (slightly less likely to select a far away murder)
 		var randomIndex = Math.round(Math.abs((game.randomSafe(0.2) / 10) - 1) * game.config.womenMarked.length);
 		
 		var mapid = game.config.womenMarked[randomIndex];
@@ -492,11 +481,27 @@ var game = {
 		jack[jack.length - 1].murder.push(mapid);
 		jack[jack.length - 1].murderMove.push(game.config.totalMoves - game.config.remainingMoves + 1);
 	},
-	sortSevenSteps: function (array) {
+	sortSevenSteps: function (arrayToSort) {
 		// Sort by moves to base (7 being optimal)
-		return _.sortBy(array, function (num) {
-			return Math.abs(jack.routeToBase(num) - 7);
+
+		var arrayMoves = new Array();
+
+		for (var a in arrayToSort) {
+			console.log('Crunching route ' + a + '/' + arrayToSort.length);
+			var shortestRoutes = jack.bruteForceRoute(arrayToSort[a]);
+			arrayMoves.push(shortestRoutes.moves);
+		}
+
+		var object = _.sortBy(_.map(arrayToSort, function(mapid, index) {
+			var sevenOffset = Math.abs( arrayMoves[index] - 7 );
+			return { mapid: mapid, moves: arrayMoves[index], sevenOffset: sevenOffset };
+		}), 'sevenOffset');
+
+		var sortedArray = _.map(object, function(item) {
+			return item.mapid;
 		});
+
+		return sortedArray;
 	},
 	oneStep: function (mapid) {
 		// Show all possible police movements
@@ -553,10 +558,12 @@ var game = {
 
 jack.move = function () { // Returns a SyntaxError error if Jack can't move
 
-	// TODO: If adjacent to base and nearly end of game; move to base and announce
 	// TODO: If close to base but too early in the night; avoid base
 
-	var adjacentNumber = jack.oneStepAvoidPolice(_.last(_.last(jack).route)); // Prevent moving through police
+	var shortestRoutes = jack.bruteForceRoute( _.last(_.last(jack).route) );
+	var shortestRoutesAvoidPolice = jack.bruteForceRoute( _.last(_.last(jack).route), true );
+
+	var adjacentNumber = jack.oneStep(_.last(_.last(jack).route), true); // Prevent moving through police
 	var adjacent = new Array();
 	var baseX = map[game.config.base].position[0];
 	var baseY = map[game.config.base].position[1];
@@ -584,20 +591,14 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 	for (a = 0; a < adjacentNumber.length; a++) { // For each position adjacent to Jack
 		var baseDistance = Math.hypot(Math.abs(map[adjacentNumber[a]].position[0] - baseX), Math.abs(map[adjacentNumber[a]].position[1] - baseY));
 		adjacent[a] = new Array(); // Create a lovely array of options listing pros and cons
-		adjacent[a].number = adjacentNumber[a];
+		adjacent[a].mapid = adjacentNumber[a];
 		adjacent[a].distance = baseDistance;
-		adjacent[a].arrestable = _.has(arrestable, adjacentNumber[a]) ? true : false;
-		adjacent[a].arrestableAngles = arrestable[adjacentNumber[a]];
-		adjacent[a].stepsToBase = jack.routeToBase(a);
-		adjacent[a].stepsToBaseAvoidPolice = jack.routeToBaseAvoidPolice(a);
+		adjacent[a].arrestable = _.has(arrestable, adjacentNumber[a]) ? arrestable[adjacentNumber[a]] : false;
 	}
 
 	switch (_.last(jack).route.length) {
 		case 1: // Jack's first move
 			adjacent = _.sortBy(adjacent, 'distance');
-			adjacent = _.sortBy(adjacent, 'stepsToBase');
-			adjacent = _.sortBy(adjacent, 'stepsToBaseAvoidPolice');
-			adjacent = _.sortBy(adjacent, 'arrestableAngles');
 			adjacent = _.sortBy(adjacent, 'arrestable');
 			var unarrestableCount = _.without(_.map(adjacent, function (obj) { return obj.arrestable; }), true).length
 			if (unarrestableCount > 0) {
@@ -609,9 +610,6 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 		break;
 		case 2: // Jack's second move
 			adjacent = _.sortBy(adjacent, 'distance');
-			adjacent = _.sortBy(adjacent, 'stepsToBase');
-			adjacent = _.sortBy(adjacent, 'stepsToBaseAvoidPolice');
-			adjacent = _.sortBy(adjacent, 'arrestableAngles');
 			adjacent = _.sortBy(adjacent, 'arrestable');
 			randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
 		break;
@@ -622,67 +620,48 @@ jack.move = function () { // Returns a SyntaxError error if Jack can't move
 				randomIndex = _.indexOf(adjacent, game.config.base);
 			} else {
 				adjacent = _.sortBy(adjacent, 'distance');
-				adjacent = _.sortBy(adjacent, 'stepsToBase');
-				adjacent = _.sortBy(adjacent, 'stepsToBaseAvoidPolice');
 				randomIndex = Math.floor(Math.abs((game.randomSafe(0.99) / 10) - 1) * (adjacentNumber.length + 1));
 			}
 		break;
 	}
 
-	_.last(jack).adjacent = adjacent; // Save this info to jack for console reference
+	// Save this info to jack for console reference
+	_.last(jack).adjacent = adjacent;
+	_.last(jack).shortestRoutes = shortestRoutes;
+	_.last(jack).shortestRoutesAvoidPolice = shortestRoutesAvoidPolice;
 
-	return adjacent[randomIndex].number;
+	return adjacent[randomIndex].mapid;
 }
 
-jack.oneStep = function (mapid) {
+jack.oneStep = function (mapid, avoidPolice) {
 	// Show all possible Jack movements
 	var adjacentNumbers = new Array();
+	avoidPolice = typeof avoidPolice !== 'undefined' ? avoidPolice : false; // Can pass police by default
 
 	var nextStep = function (array, blacklist) {
 		var nonNumbers = _.compact(_.map(array, function (id) {
 			if (_.indexOf(blacklist, id) == -1) { // If it's not been processed already
 				blacklist.push(id); // Make sure it's not processed again
-				if (map[id].number) {
-					adjacentNumbers.push(id); // Store numbers
+
+				// Can Jack pass police?
+				if (avoidPolice) {
+					if (_.indexOf(_.last(police).now, id) == -1) { // Jack can't pass police
+						if (map[id].number) {
+							adjacentNumbers.push(id); // Store numbers
+						} else {
+							return id; // Return non numbers
+						}
+					}
 				} else {
-					return id; // Return non numbers
-				}
-			}
-		}));
-
-		// Loop
-		if (nonNumbers.length > 0) {
-			nonNumbers = _.flatten(_.map(nonNumbers, function (num) {
-				nextStep(map[num].adjacent, blacklist);
-			}));
-		} else {
-			return nonNumbers;
-		}
-	}
-
-	nextStep(map[mapid].adjacent, []); // Go
-
-	return _.without(adjacentNumbers, mapid);
-}
-
-jack.oneStepAvoidPolice = function (mapid) {
-	// Show all possible Jack movements
-	var adjacentNumbers = new Array();
-
-	var nextStep = function (array, blacklist) {
-		var nonNumbers = _.compact(_.map(array, function (id) {
-			if (_.indexOf(blacklist, id) == -1) { // If it's not been processed already
-				blacklist.push(id); // Make sure it's not processed again
-				if (_.indexOf(_.last(police).now, id) == -1) { // Jack can't pass police
 					if (map[id].number) {
 						adjacentNumbers.push(id); // Store numbers
 					} else {
 						return id; // Return non numbers
 					}
 				}
+
 			}
 		}));
-
 		// Loop
 		if (nonNumbers.length > 0) {
 			nonNumbers = _.flatten(_.map(nonNumbers, function (num) {
@@ -694,22 +673,22 @@ jack.oneStepAvoidPolice = function (mapid) {
 	}
 
 	nextStep(map[mapid].adjacent, []); // Go
-
 	return _.without(adjacentNumbers, mapid);
 }
 
 jack.canMove = function () {
-	return !_.isEmpty(jack.oneStepAvoidPolice(_.last(_.last(jack).route)));
+	return !_.isEmpty(jack.oneStep(_.last(_.last(jack).route)), true);
 }
 
 jack.mapidToRoutes = function (mapid) {
 	return [[mapid]];
 }
 
-jack.routesAdvance = function (routes) {
+jack.routesAdvance = function (routes, avoidPolice) {
 	var newRoutes = new Array();
+	avoidPolice = typeof avoidPolice !== 'undefined' ? avoidPolice : false; // Can pass police by default
 	for (a = 0; a < routes.length; a++) {
-		var adjacent = jack.oneStep(_.last(routes[a]));
+		var adjacent = jack.oneStep(_.last(routes[a]), avoidPolice);
 		if (routes[a].length < game.config.remainingMoves) { // Don't advance route if out of moves
 			for (b = 0; b < adjacent.length; b++) {
 				if (_.indexOf(routes[a], adjacent[b]) == -1) { // Don't retrace steps
@@ -725,39 +704,15 @@ jack.routesAdvance = function (routes) {
 	return newRoutes;
 }
 
-jack.bruteForceJackRoute = function (mapid) {
-	var routes = jack.mapidToRoutes(mapid);
-	var routesEnds = _.map(routes, function(route) {
-		return _.last(route);
-	});
-
-	var shortestRoutes = new Array();
-
-	// Loop
-	while (shortestRoutes.length < 1 && routes[0].length < 9) { // Impose a limit to stop it crashing
-		routes = jack.routesAdvance(routes);
-		routesEnds = _.map(routes, function(route) {
-			return _.last(route);
-		});
-		for (i = 0; i < routesEnds.length; i++) { // This brute force method is faster than indexOf apparently
-			if (routesEnds[i] == game.config.base) {
-				shortestRoutes.push(routes[i]);
-			};
-		}
-	}
-
-	return shortestRoutes;
-}
-
-jack.bruteForceRoute = function (mapid) {
+jack.bruteForceRoute = function (mapid, avoidPolice) {
 	var jackRoutes = jack.mapidToRoutes(mapid);
 	var baseRoutes = jack.mapidToRoutes(game.config.base);
 	var shortestRoutes = {
 		intersection: new Array(),
 		jackToIntersection: new Array(),
-		intersectionToBase: new Array(),
-		moves: new Array()
+		intersectionToBase: new Array()
 	}
+	avoidPolice = typeof avoidPolice !== 'undefined' ? avoidPolice : false; // Can pass police by default
 
 	var intersects = function (jackRoutes, baseRoutes) {
 		jackRoutesEnds = _.map(jackRoutes, function(route) { return _.last(route) });
@@ -782,61 +737,15 @@ jack.bruteForceRoute = function (mapid) {
 
 	// Loop
 	while (shortestRoutes.jackToIntersection.length < 1 && jackRoutes[0].length < 7) { // Impose a limit to stop it crashing
-		jackRoutes = jack.routesAdvance(jackRoutes); // Advance Jack
+		jackRoutes = jack.routesAdvance(jackRoutes, avoidPolice); // Advance Jack
 		intersects(jackRoutes, baseRoutes); // Check for intersection
 		if (shortestRoutes.jackToIntersection.length > 0) break; // Escape loop if intersection found
-		baseRoutes = jack.routesAdvance(baseRoutes); // Advance Base
+		baseRoutes = jack.routesAdvance(baseRoutes, avoidPolice); // Advance Base
 		intersects(jackRoutes, baseRoutes); // Check for intersection
 	}
 
 	shortestRoutes.moves = shortestRoutes.jackToIntersection[0].length + shortestRoutes.intersectionToBase[0].length - 2;
 	return shortestRoutes;
-}
-
-jack.routeToBase = function (mapid) {
-	// TODO: Fix bug - jack.routeToBase(293) (when base is 255) return 4 not 3
-	var counter = 2;
-	var step = function (array) {
-		counter++;
-		return _.uniq(_.flatten(_.map(array, function (id) {
-			return jack.oneStep(id);
-		})));
-	}
-	
-	var massiveArray = step(jack.oneStep(mapid));
-
-	while (_.indexOf(massiveArray, game.config.base) == -1) {
-		if (counter <= game.config.remainingMoves) {
-			massiveArray = step(massiveArray);
-		} else {
-			counter = undefined;
-			break;
-		}
-	}
-
-	return counter;
-}
-
-jack.routeToBaseAvoidPolice = function (mapid) {
-	var counter = 2;
-	var step = function (array) {
-		counter++;
-		return _.uniq(_.flatten(_.map(array, function (id) {
-			return jack.oneStepAvoidPolice(id);
-		})));
-	}
-	
-	var massiveArray = step(jack.oneStepAvoidPolice(mapid));
-
-	while (_.indexOf(massiveArray, game.config.base) == -1) {
-		if (counter <= game.config.remainingMoves) {
-			massiveArray = step(massiveArray);
-		} else {
-			counter = undefined;
-			break;
-		}
-	}
-	return counter;
 }
 
 /* Draw
