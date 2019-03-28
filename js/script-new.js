@@ -10,11 +10,11 @@ let Character = Backbone.Model.extend({
 	},
 	setToken: function(id, marked, tokenKey, mapKey){
 		let tokenId = Number(map.key(mapKey)[id])
-		if (_.contains(_.pluck(this.get(tokenKey), 'id'), tokenId)) {
-			return false // Don't use the same spot twice
-		} else {
+		if (!_.contains(_.pluck(this.get(tokenKey), 'id'), tokenId)) {
 			this.setPush(tokenKey, {'id': Number(tokenId), 'marked': marked})
 			return true
+		} else {
+			return false // Don't use the same spot twice
 		}
 	},
 	getToken: function(id, tokenKey){
