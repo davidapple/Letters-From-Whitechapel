@@ -1,6 +1,6 @@
-var map = new Array();
+var map = new Object();
 for (a = 0; a < 429; a++ ){
-	map[a] = new Array();
+	map[a] = new Object();
 }
 map[0].position = [98.165, 63];
 map[0].adjacent = [1, 124];
@@ -1297,9 +1297,9 @@ map.key = function (key) {
 	// Returns an array of ids that have a key,
 	// for example game.mapKey('station') = [33, 56, 76, 190, 210, 312, 385]
 	array = new Array();
-	_.map(map, function(item, index) {
+	_.each(map, function(item, index) {
 		if (_.has(item, key)) {
-			array.push(index);
+			array.push(index); // Should use Number() but breaks old version
 		}
 	});
 	return array;
