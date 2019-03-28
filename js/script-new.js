@@ -8,34 +8,69 @@ let Character = Backbone.Model.extend({
 	move: function(id){
 		this.setPush('path', id)
 	},
+	setToken: function(id, marked, tokenKey, mapKey){
+		let tokenId = Number(map.key(mapKey)[id])
+		if (_.contains(_.pluck(this.get(tokenKey), 'id'), tokenId)) {
+			return false // Don't use the same spot twice
+		} else {
+			this.setPush(tokenKey, {'id': Number(tokenId), 'marked': marked})
+			return true
+		}
+	},
+	getToken: function(id, tokenKey){
+		if (id < this.get(tokenKey).length) {
+			return this.get(tokenKey)[id]
+		} else {
+			return false
+		}
+	},
+	randomToken: function(marked, tokenKey, mapKey){
+		if (map.key(mapKey).length > this.get(tokenKey).length) {
+			if (!this.setToken(_.random(0, map.key(mapKey).length - 1), marked, tokenKey, mapKey)) {
+				this.randomToken(marked, tokenKey, mapKey)
+			}
+		} else {
+			return false // Prevent infinate loop
+		}
+	},
+	randomTokens: function(tokenKey, mapKey, tokenCount, tokenMarked){
+		let self = this
+		this.set(tokenKey, [])
+		_.each(_.range(this.get(tokenMarked)), function(){
+			self.randomToken(true, tokenKey, mapKey)
+		})
+		_.each(_.range(this.get(tokenCount) - this.get(tokenMarked)), function(){
+			self.randomToken(false, tokenKey, mapKey)
+		})
+		this.set(tokenKey, _.shuffle(this.get(tokenKey)))
+	},
 })
 
 let Jack = Character.extend({
 	initialize: function(){
 		this.set({
-			'women': [],
-			'wretched': [],
+			'womenTokens': [],
+			'wretchedTokens': [],
 			'murder': [],
 			'clue': [],
+			'time': 0,
 		})
 		this.randomBase()
 		this.night1()
 	},
-	night1: function(){
-		this.set({'womenCount': 8, 'womenMarked': 5, 'carrage': 3, 'lantern': 2,})
-		this.allRandomWomen()
+	night1: function(){ this.changeNight(1, 8, 5, 3, 2) },
+	night2: function(){ this.changeNight(2, 7, 4, 2, 2) },
+	night3: function(){ this.changeNight(3, 6, 3, 2, 1) },
+	night4: function(){ this.changeNight(4, 4, 1, 1, 1) },
+	changeNight: function(night, women, marked, carrage, lantern){
+		this.set({'night': night, 'womenCount': women, 'womenMarked': marked, 'carrage': carrage, 'lantern': lantern,})
+		this.setWomen()
 	},
-	night2: function(){
-		this.set({'womenCount': 7, 'womenMarked': 4, 'carrage': 2, 'lantern': 2,})
-		this.allRandomWomen()
+	advanceTime: function(){
+		this.set('time', this.get('time') + 1)
 	},
-	night3: function(){
-		this.set({'womenCount': 6, 'womenMarked': 3, 'carrage': 2, 'lantern': 1,})
-		this.allRandomWomen()
-	},
-	night4: function(){
-		this.set({'womenCount': 4, 'womenMarked': 1, 'carrage': 1, 'lantern': 1,})
-		this.allRandomWomen()
+	wait: function(){
+		this.set('time', this.get('time') - 1)
 	},
 	randomBase: function(){
 		this.setBase(_.random(0, map.key('number').length - 1))
@@ -44,38 +79,21 @@ let Jack = Character.extend({
 		let base = Number(map.key('number')[id])
 		this.set('base', {'id': base, 'number': map[base].number})
 	},
-	allRandomWomen: function(){
-		let self = this
-		this.set('women', [])
-		_.each(_.range(this.get('womenMarked')), function(){
-			self.randomWomen(true)
-		})
-		_.each(_.range(this.get('womenCount') - this.get('womenMarked')), function(){
-			self.randomWomen(false)
-		})
-		this.set('women', _.shuffle(this.get('women')))
-	},
-	randomWomen: function(marked){
-		if (map.key('murder').length > this.get('women').length) {
-			if (!this.setWomen(_.random(0, map.key('murder').length - 1), marked)) {
-				this.randomWomen(marked)
-			}
-		} else {
-			return false // Prevent infinate loop
-		}
-	},
-	setWomen: function(id, marked){
-		let womenId = Number(map.key('murder')[id])
-		if (_.contains(_.pluck(this.get('women'), 'id'), womenId)) {
-			return false // Don't use the same spot twice
-		} else {
-			this.setPush('women', {'id': Number(womenId), 'marked': marked})
-			return true
-		}
+	setWomen: function(){
+		this.randomTokens('womenTokens', 'murder', 'womenCount', 'womenMarked')
 	},
 	setWretched: function(){
-		this.set('wretched', _.where(this.get('women'), {'marked': true}))
-		this.set('women', [])
+		this.set('wretchedTokens', _.where(this.get('womenTokens'), {'marked': true}))
+		this.set('womenTokens', [])
+	},
+	getWretched: function(id){
+		return this.getToken(id, 'wretchedTokens')
+	},
+	murder(id){
+		let mapId = this.getWretched(id).id
+		this.setPush('murder', {'id': mapId, 'number': map[mapId].number, 'time': this.get('time')})
+		this.move(mapId)
+		this.set('wretchedTokens', [])
 	},
 	possibleMoves: function(){
 
@@ -85,11 +103,19 @@ let Jack = Character.extend({
 let Police = Character.extend({
 	initialize: function(){
 		this.set({
+			'policeTokens': [],
+			'policeCount': 7,
+			'policeMarked': 5,
 			'headOfInvestigation': false,
 		})
 	},
-	newPolice: function(){
-		
+	setPolice: function(){
+		this.randomTokens('policeTokens', 'station', 'policeCount', 'policeMarked')
+	},
+	checkPolice: function(id){
+		let tokens = this.get('policeTokens')
+		tokens[id].checked = true
+		this.set('policeTokens', tokens)
 	},
 	possibleMoves: function(){
 		
@@ -98,8 +124,14 @@ let Police = Character.extend({
 
 let jack = new Jack();
 let police = new Police();
+police.set('headOfInvestigation', true)
 
-jack.randomBase()
+police.setPolice()
+jack.setWretched()
 
-// jack.setWretched()
+// police.checkPolice(3)
+// jack.wait()
+
+// jack.murder(3)
+
 // jack.move(8)
