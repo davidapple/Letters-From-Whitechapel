@@ -1,7 +1,7 @@
 let drawMap = function(){
 	_.each(map, function(num, key){
-		if (_.has(num, 'position')){
-			if (_.has(num, 'number')){
+		if (num.position){
+			if (num.number){
 				let murder = (num.murder ? ' location-murder' : '')
 				let classes = 'label label-primary location-number location-' + key + murder
 				mapPin(key, num.number, classes).prependTo('.map')
