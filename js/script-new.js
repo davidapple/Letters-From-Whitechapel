@@ -5,8 +5,8 @@ let Character = Backbone.Model.extend({
 	setPush: function(key, value){
 		this.set(key, this.get(key).concat(value))
 	},
-	move: function(id){
-		this.setPush('path', id)
+	move: function(object){
+		this.setPush('path', object)
 	},
 	setToken: function(id, marked, tokenKey, mapKey){
 		let tokenId = Number(map.key(mapKey)[id])
@@ -14,15 +14,26 @@ let Character = Backbone.Model.extend({
 			this.setPush(tokenKey, {'id': Number(tokenId), 'marked': marked})
 			return true
 		} else {
-			return false // Don't use the same spot twice
+			return false // Same spot repeated
 		}
 	},
 	getToken: function(id, tokenKey){
 		if (id < this.get(tokenKey).length) {
 			return this.get(tokenKey)[id]
 		} else {
-			return false
+			return false // No token here
 		}
+	},
+	moveToken: function(id, tokenKey, idNew){
+		let tokens = this.get(tokenKey)
+		tokens[id].id = idNew
+		this.set(tokenKey, tokens)
+		this.markToken(id, tokenKey, 'moved')
+	},
+	markToken: function(id, tokenKey, property){
+		let tokens = this.get(tokenKey)
+		tokens[id][property] = true
+		this.set(tokenKey, tokens)
 	},
 	randomToken: function(marked, tokenKey, mapKey){
 		if (map.key(mapKey).length > this.get(tokenKey).length) {
@@ -58,12 +69,12 @@ let Jack = Character.extend({
 		this.randomBase()
 		this.night1()
 	},
-	night1: function(){ this.changeNight(1, 8, 5, 3, 2) },
-	night2: function(){ this.changeNight(2, 7, 4, 2, 2) },
-	night3: function(){ this.changeNight(3, 6, 3, 2, 1) },
-	night4: function(){ this.changeNight(4, 4, 1, 1, 1) },
-	changeNight: function(night, women, marked, carrage, lantern){
-		this.set({'night': night, 'womenCount': women, 'womenMarked': marked, 'carrage': carrage, 'lantern': lantern,})
+	night1: function(){ this.changeNight(1, 8, 5, 3, 2, 1) },
+	night2: function(){ this.changeNight(2, 7, 4, 2, 2, 1) },
+	night3: function(){ this.changeNight(3, 6, 3, 2, 1, 2) },
+	night4: function(){ this.changeNight(4, 4, 1, 1, 1, 1) },
+	changeNight: function(night, women, marked, carrage, lantern, murdersTonight){
+		this.set({'night': night, 'womenCount': women, 'womenMarked': marked, 'carrage': carrage, 'lantern': lantern, 'murdersTonight': murdersTonight,})
 		this.setWomen()
 	},
 	advanceTime: function(){
@@ -86,17 +97,39 @@ let Jack = Character.extend({
 		this.set('wretchedTokens', _.where(this.get('womenTokens'), {'marked': true}))
 		this.set('womenTokens', [])
 	},
-	getWretched: function(id){
-		return this.getToken(id, 'wretchedTokens')
+	murderWretched(id){
+		let wretched = this.get('wretchedTokens')[id]
+		if (!_.has(wretched, 'murdered')) {
+			this.markToken(id, 'wretchedTokens', 'murdered')
+			this.moveJack(wretched.id, false, false, true, false)
+		} else {
+			return false // Prevent murdering the same wretched twice
+		}
 	},
-	murder(id){
-		let mapId = this.getWretched(id).id
-		this.setPush('murder', {'id': mapId, 'number': map[mapId].number, 'time': this.get('time')})
-		this.move(mapId)
-		this.set('wretchedTokens', [])
+	setMurder(){
+		// Note: Searching murdered wretched returns them in a different order to Jack's path
+		let murderedWretched = _.where(this.get('wretchedTokens'), {'murdered': true})
+		if (murderedWretched.length >= this.get('murdersTonight')){
+			this.set('murder', murderedWretched)
+			this.set('wretchedTokens', [])
+			return true
+		} else {
+			return false // More murders required tonight
+		}
 	},
-	possibleMoves: function(){
-
+	murder: function(){
+		if (this.setMurder()){
+			return true
+		} else {
+			this.murderWretched(_.random(0, jack.get('wretchedTokens').length - 1))
+			this.murder()
+		}
+	},
+	moveJack: function(id, carrage, lantern, murder, base){
+		this.move({'id': id, 'carrage': carrage, 'lantern': lantern, 'murder': murder, 'base': base})
+	},
+	possibleMoves: function(id){
+		return map[id].adjacentNumber
 	},
 })
 
@@ -113,9 +146,10 @@ let Police = Character.extend({
 		this.randomTokens('policeTokens', 'station', 'policeCount', 'policeMarked')
 	},
 	checkPolice: function(id){
-		let tokens = this.get('policeTokens')
-		tokens[id].checked = true
-		this.set('policeTokens', tokens)
+		this.markToken(id, 'policeTokens', 'checked')
+	},
+	movePolice: function(id, station){
+		this.move({'id': id, 'station': station})
 	},
 	possibleMoves: function(){
 		
@@ -131,7 +165,12 @@ jack.setWretched()
 
 // police.checkPolice(3)
 // jack.wait()
+// jack.possibleMoves(jack.getToken(0, 'wretchedTokens').id)
+// jack.moveToken(0, 'wretchedTokens', 991)
+// jack.moveToken(1, 'wretchedTokens', 992)
+// jack.moveToken(2, 'wretchedTokens', 993)
+// jack.moveToken(3, 'wretchedTokens', 994)
 
-// jack.murder(3)
+// jack.murder()
 
 // jack.move(8)
