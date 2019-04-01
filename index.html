@@ -91,10 +91,10 @@ function jackSetWomen(womenCount, womenMarked){
 			jack.setToken(key, womenTokens < womenMarked, 'womenTokens', 'murder')
 			$(this).off().addClass('token-woman-selected').removeClass('selectable')
 			if (womenTokens >= womenCount - 1) {
-				disableClicks('token token-woman selectable')
 				squad.findWhere({lead: true}).setPolice()
 				jack.setWretched()
 				jackWaitOrKill()
+				disableClicks('token token-woman selectable')
 			}
 		}).addClass('token token-woman selectable')
 	})
@@ -104,8 +104,8 @@ function jackSetBase(){
 	$('.location-number').click(function(){
 		jack.setBase($(this).data('mapid'))
 		$(this).addClass('token-base')
-		disableClicks('token selectable')
 		jackSetWomen(jack.get('womenCount'), jack.get('womenMarked'))
+		disableClicks('token selectable')
 	}).addClass('token selectable')
 }
 
