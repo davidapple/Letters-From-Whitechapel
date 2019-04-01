@@ -78,8 +78,26 @@ function disableClicks(removeClasses){
 	$('.map .label').off().removeClass(removeClasses)
 }
 
-function jackWaitOrKill(){
-	console.log('jackWaitOrKill')
+function jackMurder(){
+	_.each(jack.get('wretchedTokens'), function(num, key){
+		$('.location-' + num.id).click(function(){
+			
+			// TODO
+
+			$(this).off().addClass('token-woman-selected').removeClass('selectable')
+		}).addClass('token token-woman selectable')
+	})
+}
+
+function policeCheck(){
+	_.each(squad.findWhere({lead: true}).get('policeTokens'), function(num, key){
+		$('.location-' + num.id).click(function(){
+
+			// TODO
+			
+			$(this).off().addClass('token-police-selected').removeClass('selectable')
+		}).addClass('token token-police selectable')
+	})
 }
 
 function jackSetWomen(womenCount, womenMarked){
@@ -93,8 +111,9 @@ function jackSetWomen(womenCount, womenMarked){
 			if (womenTokens >= womenCount - 1) {
 				squad.findWhere({lead: true}).setPolice()
 				jack.setWretched()
-				jackWaitOrKill()
 				disableClicks('token token-woman selectable')
+				policeCheck()
+				jackMurder()
 			}
 		}).addClass('token token-woman selectable')
 	})
@@ -104,8 +123,8 @@ function jackSetBase(){
 	$('.location-number').click(function(){
 		jack.setBase($(this).data('mapid'))
 		$(this).addClass('token-base')
-		jackSetWomen(jack.get('womenCount'), jack.get('womenMarked'))
 		disableClicks('token selectable')
+		jackSetWomen(jack.get('womenCount'), jack.get('womenMarked'))
 	}).addClass('token selectable')
 }
 

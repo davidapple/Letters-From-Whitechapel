@@ -26,8 +26,8 @@
     top: 0;
     left: 0;
     z-index: -1;
-    opacity:0.3;
-    filter:alpha(opacity=30);
+    opacity:0.0;
+    filter:alpha(opacity=0);
 }
 .map object {
     max-width: 100%;
@@ -83,8 +83,8 @@
 }
 .map .token {
     position: absolute;
-    margin-top: 0px;
-    margin-left: -5px;
+    margin-top: -10px;
+    margin-left: -6px;
     font-size: 9px;
 }
 .map .token.selectable {
@@ -131,7 +131,7 @@
     background-color: #ff0000;
     color: #ffffff;
     text-align: center;
-    font-size: 19px;
+    font-size: 15px;
     opacity: 1;
 }
 .map .token.token-murder:before {
@@ -148,7 +148,7 @@
     background-color: #bbbbbb;
     color: #333;
     text-align: center;
-    font-size: 19px;
+    font-size: 15px;
 }
 .map .token-woman:before {
   font-family: 'FontAwesome';
@@ -164,7 +164,7 @@
     background-color: #f5e79e;
     color: #333;
     text-align: center;
-    font-size: 19px;
+    font-size: 15px;
     z-index: 1;
     opacity: 0.8;
 }
@@ -179,16 +179,35 @@
     height: 18px;
     margin-top: -10px;
     margin-left: -11px;
-    background-color: #f5e79e;
+    background-color: #E3EEB6;
     color: #333;
     text-align: center;
-    font-size: 19px;
+    font-size: 15px;
+    z-index: 1;
+    opacity: 1;
+}
+.map .token-base:before {
+    color: #5E514B;
+    font-family: 'FontAwesome';
+    content: "\f015";
+}
+.map .token-police {
+    display: block;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: -10px;
+    margin-left: -11px;
+    background-color: #2A649D;
+    color: #fff;
+    text-align: center;
+    font-size: 15px;
     z-index: 1;
     opacity: 0.8;
 }
-.map .token-base:before {
+.map .token-police:before {
     font-family: 'FontAwesome';
-    content: "\f015";
+    content: "\f183";
 }
 .move-tracker {
 	position: absolute;

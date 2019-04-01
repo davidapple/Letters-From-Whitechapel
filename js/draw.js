@@ -12,15 +12,15 @@ let drawPosition = function(num, key){
 		if (num.number){
 			let murder = (num.murder ? ' location-murder' : '')
 			let classes = 'label label-primary location-number location-' + key + murder
-			drawPin(key, num.number, classes).prependTo('.map')
+			drawPin(key, '', classes).prependTo('.map')
 		} else {
 			if (num.station){
 				var station = ' location-station'
 				var classes = 'label label-default location location-' + key + station
-				drawPin(key, 's', classes).prependTo('.map')
+				drawPin(key, '', classes).prependTo('.map')
 			} else {
 				var classes = 'label label-default location location-' + key
-				drawPin(key, ' ', classes).prependTo('.map')
+				drawPin(key, '', classes).prependTo('.map')
 			}
 		}
 	}
