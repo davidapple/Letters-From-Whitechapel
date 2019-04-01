@@ -118,6 +118,9 @@
 .map .token.police-4 {
     background-color: #ffcc33;
 }
+.map .token-woman.token-woman-selected {
+    background-color: #ffffff;
+}
 .map .token.token-murder {
     display: block;
     padding: 2px;
@@ -142,7 +145,7 @@
     height: 18px;
     margin-top: -10px;
     margin-left: -11px;
-    background-color: #ffffff;
+    background-color: #bbbbbb;
     color: #333;
     text-align: center;
     font-size: 19px;
@@ -168,6 +171,24 @@
 .map .token-clue:before {
     font-family: 'FontAwesome';
     content: "\f1b0";
+}
+.map .token-base {
+    display: block;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    margin-top: -10px;
+    margin-left: -11px;
+    background-color: #f5e79e;
+    color: #333;
+    text-align: center;
+    font-size: 19px;
+    z-index: 1;
+    opacity: 0.8;
+}
+.map .token-base:before {
+    font-family: 'FontAwesome';
+    content: "\f015";
 }
 .move-tracker {
 	position: absolute;

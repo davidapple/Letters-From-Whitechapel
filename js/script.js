@@ -1,4 +1,4 @@
-let Character = Backbone.Model.extend({
+const Character = Backbone.Model.extend({
 	defaults: {
 		path: [],
 	},
@@ -57,7 +57,7 @@ let Character = Backbone.Model.extend({
 	},
 })
 
-let Jack = Character.extend({
+const Jack = Character.extend({
 	initialize: function(){
 		this.set({
 			'womenTokens': [],
@@ -66,7 +66,6 @@ let Jack = Character.extend({
 			'clue': [],
 			'time': 0,
 		})
-		this.randomBase()
 		this.night1()
 	},
 	night1: function(){ this.changeNight(1, 8, 5, 3, 2, 1) },
@@ -75,7 +74,9 @@ let Jack = Character.extend({
 	night4: function(){ this.changeNight(4, 4, 1, 1, 1, 1) },
 	changeNight: function(night, women, marked, carrage, lantern, murdersTonight){
 		this.set({'night': night, 'womenCount': women, 'womenMarked': marked, 'carrage': carrage, 'lantern': lantern, 'murdersTonight': murdersTonight,})
-		this.setWomen()
+		if (this.get('auto')) {
+			this.setWomen()
+		}
 	},
 	advanceTime: function(){
 		this.set('time', this.get('time') + 1)
@@ -133,13 +134,12 @@ let Jack = Character.extend({
 	},
 })
 
-let Police = Character.extend({
+const Police = Character.extend({
 	initialize: function(){
 		this.set({
 			'policeTokens': [],
 			'policeCount': 7,
 			'policeMarked': 5,
-			'headOfInvestigation': false,
 		})
 	},
 	setPolice: function(){
@@ -156,12 +156,16 @@ let Police = Character.extend({
 	},
 })
 
-let jack = new Jack();
-let police = new Police();
-police.set('headOfInvestigation', true)
+const Squad = Backbone.Collection.extend({
+  model: Police
+});
 
-police.setPolice()
-jack.setWretched()
+// let jack = new Jack()
+// let police = new Police()
+// police.set('let', true)
+
+// police.setPolice()
+// jack.setWretched()
 
 // police.checkPolice(3)
 // jack.wait()

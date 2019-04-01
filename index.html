@@ -14,6 +14,25 @@
       <strong>Warning!</strong> Your web browser window is too narrow.
     </div>
 
+    <div id="play">
+	    <p class="text-center"><button class="btn btn-primary" id="playJack">Play as Jack</button></p>
+	    <p class="text-center"><button class="btn btn-danger" id="playPolice">Play as Police</button></p>
+	</div>
+
+	<div id="jackSetBase">
+		<p>Set Jack's Base.</p>
+	</div>
+
+	<div id="jackSetWretched">
+		<p>Place <span id="womenMarked"></span> marked women tokens and then <span id="womenFake"></span> unmaked women tokens.</p>
+	</div>
+
+	<div id="jackWaitOrKill">
+		<p>Check a police token or murder a wretched token.</p>
+	</div>
+
+
+
     <div class="map">
 		<div class="well well-sm move-tracker">
 			<p>
@@ -52,6 +71,63 @@
 <script type="text/javascript" src="js/map.js" type="text/javascript"></script>
 <script type="text/javascript" src="js/script.js" type="text/javascript"></script>
 <script type="text/javascript" src="js/draw.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+function disableClicks(removeClasses){
+	$('.map .label').off().removeClass(removeClasses)
+}
+
+function jackWaitOrKill(){
+	console.log('jackWaitOrKill')
+}
+
+function jackSetWomen(womenCount, womenMarked){
+	$('#womenMarked').text(womenMarked)
+	$('#womenFake').text(womenCount - womenMarked)
+	_.each(map.key('murder'), function(num, key){
+		$('.location-' + num).click(function(){
+			let womenTokens = jack.get('womenTokens').length
+			jack.setToken(key, womenTokens < womenMarked, 'womenTokens', 'murder')
+			$(this).off().addClass('token-woman-selected').removeClass('selectable')
+			if (womenTokens >= womenCount - 1) {
+				disableClicks('token token-woman selectable')
+				squad.findWhere({lead: true}).setPolice()
+				jack.setWretched()
+				jackWaitOrKill()
+			}
+		}).addClass('token token-woman selectable')
+	})
+}
+
+function jackSetBase(){
+	$('.location-number').click(function(){
+		jack.setBase($(this).data('mapid'))
+		$(this).addClass('token-base')
+		disableClicks('token selectable')
+		jackSetWomen(jack.get('womenCount'), jack.get('womenMarked'))
+	}).addClass('token selectable')
+}
+
+function play(isJack){
+	window.jack = new Jack({'auto': !isJack})
+	window.squad = new Squad({'auto': isJack, 'lead': true})
+	drawMap()
+	if (!isJack) {
+		jack.randomBase()
+		jack.setWomen()
+	} else {
+		jackSetBase()
+	}
+}
+$('#playJack').click(function(){
+	play(true)
+})
+$('#playPolice').click(function(){
+	play(false)
+})
+
+</script>
 
 </body>
 </html>
