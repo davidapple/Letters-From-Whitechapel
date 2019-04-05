@@ -73,7 +73,14 @@ const Jack = Character.extend({
 	night3: function(){ this.changeNight(3, 6, 3, 2, 1, 2) },
 	night4: function(){ this.changeNight(4, 4, 1, 1, 1, 1) },
 	changeNight: function(night, women, marked, carrage, lantern, murdersTonight){
-		this.set({'night': night, 'womenCount': women, 'womenMarked': marked, 'carrage': carrage, 'lantern': lantern, 'murdersTonight': murdersTonight,})
+		this.set({
+			'night': night, 
+			'womenCount': women, 
+			'womenMarked': marked, 
+			'carrage': carrage, 
+			'lantern': lantern, 
+			'murdersTonight': murdersTonight,
+		})
 		if (this.get('auto')) {
 			this.setWomen()
 		}
@@ -99,11 +106,11 @@ const Jack = Character.extend({
 		this.set('womenTokens', [])
 	},
 	moveAllWretched(){
-		let wretchedTokensMoved = []
+		let moved = []
 		_.each(this.get('wretchedTokens'), function(num, key){
-			wretchedTokensMoved.push({id: map[num.id].adjacentNumber[_.random(0, map[num.id].adjacentNumber.length - 1)]})
+			moved.push({id: map[num.id].adjacentNumber[_.random(0, map[num.id].adjacentNumber.length - 1)]})
 		})
-		this.set('wretchedTokens', wretchedTokensMoved)
+		this.set('wretchedTokens', moved)
 	},
 	murderWretched(id){
 		let wretched = this.get('wretchedTokens')[id]
@@ -165,7 +172,7 @@ const Police = Character.extend({
 
 const Squad = Backbone.Collection.extend({
   model: Police
-});
+})
 
 // let jack = new Jack()
 // let police = new Police()
