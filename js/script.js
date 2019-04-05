@@ -98,6 +98,13 @@ const Jack = Character.extend({
 		this.set('wretchedTokens', _.where(this.get('womenTokens'), {'marked': true}))
 		this.set('womenTokens', [])
 	},
+	moveAllWretched(){
+		let wretchedTokensMoved = []
+		_.each(this.get('wretchedTokens'), function(num, key){
+			wretchedTokensMoved.push({id: map[num.id].adjacentNumber[_.random(0, map[num.id].adjacentNumber.length - 1)]})
+		})
+		this.set('wretchedTokens', wretchedTokensMoved)
+	},
 	murderWretched(id){
 		let wretched = this.get('wretchedTokens')[id]
 		if (!_.has(wretched, 'murdered')) {

@@ -118,6 +118,9 @@
 .map .token.police-4 {
     background-color: #ffcc33;
 }
+.map .token-woman.token-woman-selected-real {
+    background-color: #ff9999;
+}
 .map .token-woman.token-woman-selected {
     background-color: #ffffff;
 }
@@ -208,6 +211,9 @@
 .map .token-police:before {
     font-family: 'FontAwesome';
     content: "\f183";
+}
+.map .token-police-real {
+    background-color: #ffcc33;
 }
 .move-tracker {
 	position: absolute;

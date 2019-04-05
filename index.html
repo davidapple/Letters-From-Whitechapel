@@ -78,25 +78,37 @@ function disableClicks(removeClasses){
 	$('.map .label').off().removeClass(removeClasses)
 }
 
-function jackMurder(){
-	_.each(jack.get('wretchedTokens'), function(num, key){
-		$('.location-' + num.id).click(function(){
-			
-			// TODO
+function updateWretchedAndPolice(){
+	disableClicks('token token-woman token-woman-selected token-woman-selected-real token-police selectable')
+	jackMurder()
+	policeCheck()
+}
 
-			$(this).off().addClass('token-woman-selected').removeClass('selectable')
-		}).addClass('token token-woman selectable')
-	})
+function jackMurder(){
+	if (!jack.setMurder()){
+		_.each(jack.get('wretchedTokens'), function(num, key){
+			$('.location-' + num.id).click(function(){
+				jack.murderWretched(_.findIndex(jack.get('wretchedTokens'), {id: num.id}))
+				$(this).off().addClass('token-murder').removeClass('token-woman selectable')
+				updateWretchedAndPolice()
+			}).addClass('token token-woman selectable')
+		})
+	} else {
+		console.log('Jack has finished murdering')
+	}
 }
 
 function policeCheck(){
 	_.each(squad.findWhere({lead: true}).get('policeTokens'), function(num, key){
-		$('.location-' + num.id).click(function(){
-
-			// TODO
-			
-			$(this).off().addClass('token-police-selected').removeClass('selectable')
-		}).addClass('token token-police selectable')
+		if (!(num.maked == false && num.checked == true)) {
+			$('.location-' + num.id).click(function(){
+				squad.findWhere({lead: true}).checkPolice(
+					_.findIndex(squad.findWhere({lead: true}).get('policeTokens'), {id: num.id})
+				)
+				jack.moveAllWretched()
+				updateWretchedAndPolice()
+			}).addClass('token token-police selectable')
+		}
 	})
 }
 
@@ -107,13 +119,12 @@ function jackSetWomen(womenCount, womenMarked){
 		$('.location-' + num).click(function(){
 			let womenTokens = jack.get('womenTokens').length
 			jack.setToken(key, womenTokens < womenMarked, 'womenTokens', 'murder')
-			$(this).off().addClass('token-woman-selected').removeClass('selectable')
+			let selectedClass = (womenTokens < womenMarked) ? 'token-woman-selected-real' : 'token-woman-selected'
+			$(this).off().addClass(selectedClass).removeClass('selectable')
 			if (womenTokens >= womenCount - 1) {
 				squad.findWhere({lead: true}).setPolice()
 				jack.setWretched()
-				disableClicks('token token-woman selectable')
-				policeCheck()
-				jackMurder()
+				updateWretchedAndPolice()
 			}
 		}).addClass('token token-woman selectable')
 	})
