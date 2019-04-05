@@ -59,16 +59,14 @@
 
 <script type="text/javascript">
 
-_.templateSettings.variable = 'time'
-let template = _.template(
-	$('script.template').html()
-)
-
 function disableClicks(removeClasses){
 	$('.map .label').off().removeClass(removeClasses)
 }
 
 function updateTime(){
+	_.templateSettings.variable = 'time'
+	let template = _.template($('script.template').html())
+	$('#moveTracker').empty()
 	$('#moveTracker').prepend(template(jack.get('time')))
 }
 
