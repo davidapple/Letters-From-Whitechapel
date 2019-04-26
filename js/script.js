@@ -171,7 +171,7 @@ const Police = Character.extend({
 				array.push(item)
 				return array
 			} else {
-				return _.union(withoutNumbers(map[id].adjacent), array)
+				return _.union(withoutNumbers(map[item].adjacent), array)
 			}
 		}
 		let withoutNumbers = function(current) {
