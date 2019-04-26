@@ -78,7 +78,9 @@ function wait(){
 function suspenseGrows(){
 	disableClicks('token token-woman token-woman-selected token-woman-selected-real token-police selectable')
 	jackMurder()
-	policeCheck()
+	if (jack.get('time') > -5) {
+		policeCheck()
+	}
 }
 
 function jackMurder(){
