@@ -27,6 +27,10 @@
 		<p>Place <span id="womenMarked"></span> marked women tokens and then <span id="womenFake"></span> unmaked women tokens.</p>
 	</div>
 
+	<div id="policeSet">
+		<p>Place <span id="policeMarked"></span> marked police tokens and then <span id="policeFake"></span> unmaked police tokens.</p>
+	</div>
+
 	<div id="jackWaitOrKill">
 		<p>Check a police token or murder a wretched token.</p>
 	</div>
@@ -130,6 +134,23 @@ function jackSetWomen(womenCount, womenMarked){
 	})
 }
 
+function policeSet(policeCount, policeMarked){
+	$('#policeMarked').text(policeMarked)
+	$('#policeFake').text(policeCount - policeMarked)
+	_.each(map.key('station'), function(num, key){
+		$('.location-' + num).click(function(){
+			let policeTokens = squad.findWhere({lead: true}).get('policeTokens').length
+			squad.findWhere({lead: true}).setToken(key, policeTokens < policeMarked, 'policeTokens', 'police')
+			let selectedClass = (policeTokens < policeMarked) ? 'token-police-selected-real' : 'token-police-selected'
+			$(this).off().addClass(selectedClass).removeClass('selectable')
+			if (policeTokens >= policeCount - 1) {
+				jack.setWomen()
+				// TODO: Next step
+			}
+		}).addClass('token token-police selectable')
+	})
+}
+
 function jackSetBase(){
 	$('.location-number').click(function(){
 		jack.setBase($(this).data('mapid'))
@@ -145,7 +166,7 @@ function play(isJack){
 	drawMap()
 	if (!isJack) {
 		jack.randomBase()
-		jack.setWomen()
+		policeSet(squad.findWhere({lead: true}).get('policeCount'), squad.findWhere({lead: true}).get('policeMarked'))
 	} else {
 		jackSetBase()
 	}

@@ -165,8 +165,27 @@ const Police = Character.extend({
 	movePolice: function(id, station){
 		this.move({'id': id, 'station': station})
 	},
-	possibleMoves: function(){
-		
+	possibleMoves: function(id){
+		let addNonNumber = function(array, item) {
+			if (!map[item].number) {
+				array.push(item)
+				return array
+			} else {
+				return _.union(withoutNumbers(map[id].adjacent), array)
+			}
+		}
+		let withoutNumbers = function(current) {
+			return _.reduce(current, function(memo, item) {
+				return addNonNumber(memo, item)
+			}, [])
+		}
+		let twoSteps = function(current) {
+			return _.union(_.flatten(_.map(withoutNumbers(current), function(a, i) {
+					return withoutNumbers(map[a].adjacent)
+				})
+			))
+		}
+		return twoSteps(map[id].adjacent)
 	},
 })
 
